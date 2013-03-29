@@ -1,0 +1,12 @@
+#!/usr/bin/env coffee
+
+GitSeedCore = require('nez').objective 'GitSeedCore',
+
+    nimbal:      'https://localhost:10101/'
+    class:       'Core Module'
+    category:    'Deployability'
+    description: """
+
+        Core components for git-seed
+
+    """, (requirement) -> 

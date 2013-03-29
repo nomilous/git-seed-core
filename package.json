@@ -3,6 +3,10 @@
   "description": "core componenets for git-seed",
   "version": "0.0.1",
   "dependencies": {},
-  "devDependencies": {},
+  "devDependencies": {
+    "should": "~1.2.2",
+    "nez": "0.0.7"
+  },
+  "main": "./lib/core",
   "repository": "git@github.com:nomilous/git-seed-core.git"
 }
