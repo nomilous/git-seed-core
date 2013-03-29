@@ -29,7 +29,7 @@ require('nez').realize 'GitRepo', (GitRepo, test, it, should, GitSupport, findit
 
                     callback()
 
-    
+
 
     it 'initializes a GitRepo from the actual repo in the specified dir', (done) ->
 
@@ -66,3 +66,4 @@ require('nez').realize 'GitRepo', (GitRepo, test, it, should, GitSupport, findit
 
         GitRepo.search 'PATH', { Package: GitRepo }, callback
 
+    it 'can pull from ' 

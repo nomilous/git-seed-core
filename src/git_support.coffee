@@ -214,3 +214,9 @@ module.exports = git =
 
 
         ], finalCallback
+
+    pull: (workDir, origin, branch, callback) -> 
+
+        console.log 'PULL', arguments
+
+

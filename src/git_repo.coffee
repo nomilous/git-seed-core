@@ -120,6 +120,12 @@ class GitRepo
 
         GitSuport.commit @path, @branch, message, callback
 
+
+    pull: (callback) -> 
+
+        GitSuport.pull @path, @origin, @branch, callback
+
+
     install: (callback) -> 
 
         console.log '(skip)'.red, "plugin did not override GitRepo.install()"
