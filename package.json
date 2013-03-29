@@ -1,0 +1,8 @@
+{
+  "name": "git-seed-core",
+  "description": "core componenets for git-seed",
+  "version": "0.0.1",
+  "dependencies": {},
+  "devDependencies": {},
+  "repository": "git@github.com:nomilous/git-seed-core.git"
+}
