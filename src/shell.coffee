@@ -55,3 +55,49 @@ module.exports = shell =
             else 
 
                 callback null
+
+    spawnAt: (at, command, opts, callback) -> 
+
+        unless at.directory
+
+            callback new Error "spawnAt() requires directory: 'dir'"
+            return
+
+        originalDir = process.cwd()
+
+        try 
+
+            process.chdir at.directory
+
+            console.log '(run)'.bold, command, opts.join(' '), "(in #{at.directory})"
+
+            child = spawn command, opts
+
+            #
+            # TODO: optionally read these into result
+            #
+
+            child.stdout.pipe process.stdout
+            child.stderr.pipe process.stderr
+
+            child.on 'close', (code, signal) ->
+
+                if code > 0
+
+                    process.chdir originalDir
+                    callback new Error "'#{command} #{opts.join(' ')}'" + ' exited with errorcode: ' + code
+
+                else 
+
+                    process.chdir originalDir
+                    callback null
+
+
+        catch error
+
+            process.chdir originalDir
+            callback error, null
+
+
+
+

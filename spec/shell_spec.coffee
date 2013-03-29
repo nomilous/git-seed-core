@@ -1,8 +1,10 @@
-require('nez').realize 'Shell', (Shell, test, context) -> 
+require('nez').realize 'Shell', (Shell, test, context, should) -> 
 
     context 'dependancies', (it) -> 
 
         it 'does not use exec-sync', (done) -> 
+
+            Error = ''
 
             try 
 
@@ -10,7 +12,18 @@ require('nez').realize 'Shell', (Shell, test, context) ->
 
             catch error
 
-                error.should.match /Cannot find module/
-                test done
+                Error = error
 
-            true.should.equal false
+            Error.should.match /Cannot find module/ 
+            test done
+
+    
+    context 'tools', (it) -> 
+
+        it 'can test for directory', (done) -> 
+
+            Shell.gotDirectory('.').should.equal true
+            Shell.gotDirectory('./not').should.equal false
+            test done
+
+        
