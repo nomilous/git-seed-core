@@ -1,4 +1,4 @@
-require('nez').realize 'GitRepo', (GitRepo, test, context, should) -> 
+require('nez').realize 'GitSupport', (GitSupport, test, context) -> 
 
     context 'in CONTEXT', (does) ->
 
