@@ -1,7 +1,7 @@
 require 'colors'
-GitSuport = require './git_support'
-Shell     = require './shell'
-Findit    = require 'findit'
+GitSupport = require './git_support'
+Shell      = require './shell'
+Findit     = require 'findit'
 
 class GitRepo
 
@@ -15,9 +15,9 @@ class GitRepo
 
             root:    seq == 0
             path:    repoDir
-            origin:  GitSuport.showOrigin repoDir
-            branch:  GitSuport.showBranch repoDir
-            ref:     GitSuport.showRef repoDir
+            origin:  GitSupport.showOrigin repoDir
+            branch:  GitSupport.showBranch repoDir
+            ref:     GitSupport.showRef repoDir
 
 
     @search: (rootRepoDir, Plugin, callback) -> 
@@ -85,7 +85,7 @@ class GitRepo
             
             return @printMissing()
 
-        status = GitSuport.showStatus @path, false
+        status = GitSupport.showStatus @path, false
 
         #
         # lazy moment (revist this properly)
@@ -113,17 +113,17 @@ class GitRepo
 
     clone: (callback) ->
 
-        GitSuport.clone @path, @origin, @branch, callback
+        GitSupport.clone @path, @origin, @branch, callback
 
 
     commit: (message, callback) -> 
 
-        GitSuport.commit @path, @branch, message, callback
+        GitSupport.commit @path, @branch, message, callback
 
 
     pull: (callback) -> 
 
-        GitSuport.pull @path, @origin, @branch, callback
+        GitSupport.pull @path, @origin, @branch, @ref, callback
 
 
     install: (callback) -> 

@@ -215,8 +215,72 @@ module.exports = git =
 
         ], finalCallback
 
-    pull: (workDir, origin, branch, callback) -> 
 
-        console.log 'PULL', arguments
+    pull: (workDir, origin, branch, ref, finalCallback) -> 
+
+        console.log 'pull', arguments
+
+        waterfall [
+
+            (callback) -> 
+
+                skip = false
+
+                if Shell.gotDirectory workDir
+
+                    console.log 'got repo'
+
+                    callback null, skip
+
+                else
+
+                    console.log '( SKIPPED )'.red, 'missing repo', workDir
+                    callback null, skip = true
+
+
+            (skip, callback) -> 
+
+                if skip
+
+                    callback null, skip
+                    return
+
+                currentBranch = git.showBranch( workDir )
+
+                if currentBranch == branch
+
+                    callback null, skip
+
+                else 
+
+                    console.log '( SKIPPED )'.red, workDir.bold, 'SHOULD BE ON BRANCH', branch.red, 'NOT', currentBranch.red
+                    
+                    #
+                    # error if root repo is on the wrong branch
+                    #
+
+                    callback new Error( 'Root repo on wrong branch!', null ) if workDir == '.'
+                    callback null, skip = true
+
+
+            (skip, callback) -> 
+
+                if skip
+
+                    callback null, skip
+                    return
+
+                if git.showRef( workDir ) == ref
+
+                    console.log '(skip)'.green, 'already up-to-date with .git-seed in', workDir
+                    callback null
+                    return
+
+
+                console.log 'pull in', workDir
+                callback null, null
+
+
+        ], finalCallback
 
 

@@ -66,4 +66,4 @@ require('nez').realize 'GitRepo', (GitRepo, test, it, should, GitSupport, findit
 
         GitRepo.search 'PATH', { Package: GitRepo }, callback
 
-    it 'can pull from ' 
+
