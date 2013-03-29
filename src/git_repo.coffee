@@ -119,6 +119,11 @@ class GitRepo
     commit: (message, callback) -> 
 
         GitSuport.commit @path, @branch, message, callback
+
+    install: (callback) -> 
+
+        console.log '(skip)'.red "plugin did not override GitRepo.install()"
+        callback null, null
         
 
 
