@@ -122,7 +122,7 @@ class GitRepo
 
     install: (callback) -> 
 
-        console.log '(skip)'.red "plugin did not override GitRepo.install()"
+        console.log '(skip)'.red, "plugin did not override GitRepo.install()"
         callback null, null
         
 
