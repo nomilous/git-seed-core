@@ -1,22 +1,61 @@
-Git   = require './git_support'
-Shell = require './shell'
+require 'colors'
+GitSuport = require './git_support'
+Shell     = require './shell'
+Findit    = require 'findit'
 
 class GitRepo
 
-    @init: (workDir, seq) -> 
+    @init: (repoDir, seq) -> 
+
+        #
+        # Initialise from repo in workDir
+        #
 
         return new GitRepo
 
             root:    seq == 0
-            path:    workDir
-            origin:  Git.showOrigin workDir
-            branch:  Git.showBranch workDir
-            ref:     Git.showRef workDir
+            path:    repoDir
+            origin:  GitSuport.showOrigin repoDir
+            branch:  GitSuport.showBranch repoDir
+            ref:     GitSuport.showRef repoDir
+
+
+    @search: (rootRepoDir, Plugin, callback) -> 
+
+        #
+        # Search for nested repos
+        #
+
+        arrayOfGitWorkdirs = []
+        list  = {}
+        find  = Findit.find rootRepoDir
+
+        find.on 'directory', (dir, stat) -> 
+
+            if match = dir.match /(.*)\/.git\//
+
+                return unless typeof list[match[1]] == 'undefined'
+
+                console.log '(found)'.green, "#{match[1]}/.git"
+                list[match[1]] = 1
+                arrayOfGitWorkdirs.push match[1]
+
+
+        find.on 'end', ->
+
+            packages = []
+            seq = 0
+
+            for path in arrayOfGitWorkdirs
+
+                packages.push Plugin.Package.init path, seq++
+
+            callback null, packages
 
 
     constructor: (properties) ->
 
-        console.log 'construct git repo:', arguments
+        #console.log 'construct git repo:', arguments
 
         for property of properties
 
@@ -46,7 +85,7 @@ class GitRepo
             
             return @printMissing()
 
-        status = Git.showStatus @path, false
+        status = GitSuport.showStatus @path, false
 
         #
         # lazy moment (revist this properly)
@@ -74,12 +113,12 @@ class GitRepo
 
     clone: (callback) ->
 
-        Git.clone @path, @origin, @branch, callback
+        GitSuport.clone @path, @origin, @branch, callback
 
 
     commit: (message, callback) -> 
 
-        Git.commit @path, @branch, message, callback
+        GitSuport.commit @path, @branch, message, callback
         
 
 
