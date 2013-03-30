@@ -274,7 +274,7 @@ module.exports = git =
 
                 if git.showRef( workDir ) == ref
 
-                    console.log '(skip)'.green, workDir, 'already up-to-date with .git-seed'
+                    console.log '(skip)'.green, workDir, 'already up-to-date'.green, 'with .git-seed'
                     callback null
                     return
 
