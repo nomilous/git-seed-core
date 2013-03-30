@@ -165,7 +165,7 @@ module.exports = git =
 
                 else
 
-                    console.log '( SKIPPED )'.red, 'missing repo', workDir
+                    console.log '( SKIPPED )'.red, 'missing repo', workDir.bold
                     callback null, skip = true
 
             (skip, callback) -> 
@@ -218,23 +218,20 @@ module.exports = git =
 
     pull: (workDir, origin, branch, ref, finalCallback) -> 
 
-        console.log 'pull', arguments
-
-        waterfall [
-
+        
+        waterfall [ 
+            
             (callback) -> 
 
                 skip = false
 
                 if Shell.gotDirectory workDir
 
-                    console.log 'got repo'
-
                     callback null, skip
 
                 else
 
-                    console.log '( SKIPPED )'.red, 'missing repo', workDir
+                    console.log '( SKIPPED )'.red, 'missing repo', workDir.bold
                     callback null, skip = true
 
 
@@ -259,8 +256,13 @@ module.exports = git =
                     # error if root repo is on the wrong branch
                     #
 
-                    callback new Error( 'Root repo on wrong branch!', null ) if workDir == '.'
-                    callback null, skip = true
+                    if workDir == '.'
+
+                        callback new Error( 'Root repo on wrong branch!' ), null
+                    
+                    else
+
+                        callback null, skip = true
 
 
             (skip, callback) -> 
@@ -272,15 +274,22 @@ module.exports = git =
 
                 if git.showRef( workDir ) == ref
 
-                    console.log '(skip)'.green, 'already up-to-date with .git-seed in', workDir
+                    console.log '(skip)'.green, workDir, 'already up-to-date with .git-seed'
                     callback null
                     return
 
+                Shell.spawnAt directory: workDir, 'git', [
 
-                console.log 'pull in', workDir
-                callback null, null
+                    "pull"
+                    "origin"
+                    branch
+
+                ], callback
 
 
         ], finalCallback
+
+
+
 
 
