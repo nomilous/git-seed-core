@@ -281,7 +281,7 @@ module.exports = git =
                 Shell.spawnAt directory: workDir, 'git', [
 
                     "pull"
-                    "origin"
+                    origin
                     branch
 
                 ], callback
