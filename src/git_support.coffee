@@ -46,7 +46,7 @@ module.exports = git =
             fs.readFile "#{gitDir}/#{head}", (error, data) ->
 
                 if error then return callback error
-                callback error, data.toString()
+                callback error, data.toString().trim()
 
 
 

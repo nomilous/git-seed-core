@@ -7,6 +7,13 @@ w          = require 'when'
 
 class GitRepo
 
+    #
+    # package manager plugin
+    #
+
+    @manager: -> 'none'
+
+
     @search: (rootRepoDir, Plugin, masterDefer, callback) -> 
 
         #
@@ -65,8 +72,10 @@ class GitRepo
                 promises.push defer.promise
                 Plugin.Package.init path, seq++, masterDefer, defer
 
-            
-            callback null, []
+
+            w.all( promises ).then -> 
+
+                callback null, []
 
 
     @init: (repoDir, seq, masterDefer, defer) -> 
@@ -84,11 +93,12 @@ class GitRepo
         repo = 
             root: seq == 0
             path: repoDir
+            manager: @manager()
 
 
         #
         # create '"sub"' deferrals for all 
-        # the call requireing async lookup 
+        # the calls requireing async lookup 
         #
 
         originDefer  = w.defer()
@@ -98,7 +108,7 @@ class GitRepo
 
 
         #
-        # pend repo resolve to all 
+        # pend repo resolve to after all 
         # '"sub"' deferrals are resolved
         #
 
@@ -108,7 +118,10 @@ class GitRepo
             branchDefer.promise
             versionDefer.promise
 
-        ]).then -> defer.resolve repo
+        ]).then -> 
+
+            console.log repo
+            defer.resolve repo
 
 
 
