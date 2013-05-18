@@ -1,11 +1,10 @@
 {
   "name": "git-seed-core",
   "description": "core componenets for git-seed",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "dependencies": {
     "colors": "~0.6.0-1",
     "async": "~0.2.6",
-    "exec-sync": "~0.1.5",
     "findit": "~0.1.2"
   },
   "devDependencies": {
