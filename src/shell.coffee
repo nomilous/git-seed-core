@@ -1,4 +1,4 @@
-exec   = require 'exec-sync'  # (TODO remove this) hmmm, broken pipe on 'git clone'??? (every time...)
+# exec   = require 'exec-sync'  # (TODO remove this) hmmm, broken pipe on 'git clone'??? (every time...)
 spawn  = require('child_process').spawn
 colors = require 'colors' 
 fs     = require 'fs'
@@ -17,20 +17,22 @@ module.exports = shell =
 
     makeDirectory: (directory) ->
 
-        try
+        throw Error 'makeDirectory()'
+        # try
 
-            exec "mkdir -p #{directory}"
+        #     exec "mkdir -p #{directory}"
 
-        catch error
+        # catch error
 
-            console.log error.red
-            throw error
+        #     console.log error.red
+        #     throw error
 
 
     execSync: (command, log = false) ->
 
+        throw Error 'execSync()'
         if log then console.log '(run)'.bold, command
-        exec command
+        # exec command
 
 
     spawn: (command, opts, callback) -> 

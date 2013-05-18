@@ -20,6 +20,14 @@ require('nez').realize 'Shell', (Shell, test, context, should) ->
     
     context 'tools', (it) -> 
 
+        it 'can mkdir -p', (done) -> 
+
+            Shell.makeDirectory()
+
+        it 'can exec syncronously', (done) -> 
+
+            Shell.execSync()
+
         it 'can test for directory', (done) -> 
 
             Shell.gotDirectory('.').should.equal true
