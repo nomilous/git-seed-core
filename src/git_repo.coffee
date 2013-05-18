@@ -81,6 +81,11 @@ class GitRepo
         #               or rejected.
         # 
 
+        GitSupport.getOrigin repoDir, (error, origin) -> 
+
+            console.log 'ORIGIN', origin
+
+
         defer.resolve 
 
             root:    seq == 0

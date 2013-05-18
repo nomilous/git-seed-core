@@ -1,66 +1,56 @@
 Shell     = require './shell'
 colors    = require 'colors'
 waterfall = require('async').waterfall
+fs        = require 'fs' 
 
 module.exports = git =
 
-    showOrigin: (workDir, callback) -> 
+    getOrigin: (workDir, callback) -> 
 
         gitDir = git.gitDir workDir
         
         try
 
-            return Shell.execSync(
+            Shell.spawn 'git', [
 
-                "git --git-dir=#{gitDir} config --get remote.origin.url"
+                "--git-dir=#{gitDir}"
+                'config'
+                '--get'
+                'remote.origin.url'
 
-            )
+            ], (error, result) -> 
+
+                if error then return callback error
+                callback null, result.stdout.trim()
 
         catch error
 
-            console.log error.red
-            throw error
+            callback error
 
 
-    showBranch: (workDir, callback) -> 
+    getHeadRef: (workDir, callback) -> 
 
         gitDir = git.gitDir workDir
+        fs.readFile "#{gitDir}/HEAD", (error, data) ->
 
-        try
-
-            return Shell.execSync(
-
-                "cat #{gitDir}/HEAD", false
-
-            ).match(
-
-                /ref: (.*)$/
-
-            )[1]
-
-        catch error
-
-            console.log error.red
-            throw error
+            if error then return callback error
+            callback null, data.toString().match(/ref: (.*)\n$/)[1]
 
 
-    showRef: (workDir, callback) -> 
+    getHeadVersion: (workDir, callback) -> 
 
         gitDir = git.gitDir workDir
-        branch = git.showBranch workDir
+        git.getHeadRef workDir, (error, head) -> 
 
-        try
+            if error then return callback error
+            fs.readFile "#{gitDir}/#{head}", (error, data) ->
 
-            return Shell.execSync(
+                if error then return callback error
+                callback error, data.toString()
 
-                "cat #{gitDir}/#{branch}"
 
-            )
 
-        catch error
 
-            console.log error.red
-            throw error
 
 
     showStatus: (workDir, log) -> 

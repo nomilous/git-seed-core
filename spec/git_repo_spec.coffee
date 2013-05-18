@@ -46,13 +46,13 @@ require('nez').realize 'GitRepo', (GitRepo, test, it, should, GitSupport, findit
 
             reject: -> 
 
-        GitRepo.init( '.', 1, deferral )
+        GitRepo.init( '.', 1, masterDefer, defer )
 
     it 'creates the repo as root if the seq is zero', (done) -> 
 
         masterDefer = 
             notify: -> 
-            
+
         defer = 
             resolve: (repo) -> 
                 repo.root.should.equal true
@@ -60,7 +60,7 @@ require('nez').realize 'GitRepo', (GitRepo, test, it, should, GitSupport, findit
 
             reject: -> 
 
-        GitRepo.init( '.', 0, deferral )
+        GitRepo.init( '.', 0, masterDefer, defer )
 
 
     it 'defines search() to recurse for nested repos', (done) -> 
