@@ -1,4 +1,5 @@
 require 'colors'
+console.log 'IMPORTANT: catch22 on the root repo having a ref'
 console.log 'remove colors'
 GitSupport = require './git_support'
 Shell      = require './shell'
@@ -138,7 +139,7 @@ class GitRepo
             branchDefer.resolve()
 
         GitSupport.getHeadVersion repoDir, (error, version) -> 
-            repo.version = version
+            repo.ref = version
             versionDefer.resolve()
 
 
