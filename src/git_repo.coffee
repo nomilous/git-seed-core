@@ -20,7 +20,7 @@ class GitRepo
             ref:     GitSupport.showRef repoDir
 
 
-    @search: (rootRepoDir, Plugin, callback) -> 
+    @search: (rootRepoDir, Plugin, deferral, callback) -> 
 
         #
         # Search for nested repos
@@ -36,7 +36,19 @@ class GitRepo
 
                 return unless typeof list[match[1]] == 'undefined'
 
-                console.log '(found)'.green, "#{match[1]}/.git"
+                deferral.notify
+
+                    #
+                    # build actual notification system later
+                    # just for cli for now
+                    #
+
+                    cli: 
+
+                        context: 'found'
+                        message: "#{match[1]}/.git"
+                        
+
                 list[match[1]] = 1
                 arrayOfGitWorkdirs.push match[1]
 

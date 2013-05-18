@@ -54,9 +54,14 @@ require('nez').realize 'GitRepo', (GitRepo, test, it, should, GitSupport, findit
         test done
 
 
-    it 'callsback with an array of found repositories', (done) -> 
+    it 'callsback with an array of found repositories and notifies the deferral on each', (done) -> 
+
+        found = []
 
         callback = (error, result) -> 
+
+            found[0].should.equal 'pretend/repo/.git'
+            found[1].should.equal 'pretend/repo/node_modules/deeper/.git'
 
             result[0].constructor.name.should.equal 'GitRepo'
             result[0].root.should.equal true
@@ -64,6 +69,10 @@ require('nez').realize 'GitRepo', (GitRepo, test, it, should, GitSupport, findit
             result.length.should.equal 2
             test done
 
-        GitRepo.search 'PATH', { Package: GitRepo }, callback
+        GitRepo.search 'PATH', { Package: GitRepo }, {
+
+            notify: (status) -> found.push status.cli.message
+
+        }, callback
 
 
