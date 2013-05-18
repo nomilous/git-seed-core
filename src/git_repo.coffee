@@ -81,26 +81,52 @@ class GitRepo
         #               or rejected.
         # 
 
+        repo = 
+            root: seq == 0
+            path: repoDir
+
+
+        #
+        # create '"sub"' deferrals for all 
+        # the call requireing async lookup 
+        #
+
+        originDefer  = w.defer()
+        branchDefer  = w.defer()
+        versionDefer = w.defer()
+
+
+
+        #
+        # pend repo resolve to all 
+        # '"sub"' deferrals are resolved
+        #
+
+        w.all([
+
+            originDefer.promise
+            branchDefer.promise
+            versionDefer.promise
+
+        ]).then -> defer.resolve repo
+
+
+
+        #
+        # each callback resolves its '"sub"' deferral
+        #
+
         GitSupport.getOrigin repoDir, (error, origin) -> 
+            repo.origin = origin
+            originDefer.resolve()
 
-            console.log 'ORIGIN', origin
+        GitSupport.getHeadRef repoDir, (error, branch) -> 
+            repo.branch = branch
+            branchDefer.resolve()
 
-
-        defer.resolve 
-
-            root:    seq == 0
-            path:    repoDir
-            origin:  ''
-            branch:  ''
-            ref:     ''
-
-        # return new GitRepo
-
-        #     root:    seq == 0
-        #     path:    repoDir
-        #     origin:  GitSupport.showOrigin repoDir
-        #     branch:  GitSupport.showBranch repoDir
-        #     ref:     GitSupport.showRef repoDir
+        GitSupport.getHeadVersion repoDir, (error, version) -> 
+            repo.version = version
+            versionDefer.resolve()
 
 
     constructor: (properties) ->

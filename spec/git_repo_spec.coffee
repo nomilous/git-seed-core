@@ -4,9 +4,9 @@ require('nez').realize 'GitRepo', (GitRepo, test, it, should, GitSupport, findit
     # Mocks
     #
 
-    GitSupport.showOrigin = -> 'ORIGIN'
-    GitSupport.showBranch = -> 'BRANCH'
-    GitSupport.showRef    = -> 'REF'
+    GitSupport.getOrigin = (dir, callback) -> callback null, 'ORIGIN'
+    GitSupport.getHeadRef = (dir, callback) -> callback null, 'BRANCH'
+    GitSupport.getHeadVersion = (dir, callback) -> callback null, 'REF'
 
     findit.find = (path) -> 
 
