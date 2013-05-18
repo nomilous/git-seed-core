@@ -26,6 +26,13 @@ require('nez').realize 'Shell', (Shell, test, context, should) ->
 
         it 'can exec syncronously', (done) -> 
 
+            #
+            # or examine why... ??
+            # 
+            # - other that because CLIs (_maybe_) need that sort of thing...
+            #
+            # 
+
             Shell.execSync()
 
         it 'can test for directory', (done) -> 
