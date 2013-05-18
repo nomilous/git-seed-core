@@ -5,7 +5,8 @@
   "dependencies": {
     "colors": "~0.6.0-1",
     "async": "~0.2.6",
-    "findit": "~0.1.2"
+    "findit": "~0.1.2",
+    "when": "~2.1.0"
   },
   "devDependencies": {
     "should": "~1.2.2",

@@ -4,7 +4,7 @@ waterfall = require('async').waterfall
 
 module.exports = git =
 
-    showOrigin: (workDir) -> 
+    showOrigin: (workDir, callback) -> 
 
         gitDir = git.gitDir workDir
         
@@ -22,7 +22,7 @@ module.exports = git =
             throw error
 
 
-    showBranch: (workDir) -> 
+    showBranch: (workDir, callback) -> 
 
         gitDir = git.gitDir workDir
 
@@ -44,7 +44,7 @@ module.exports = git =
             throw error
 
 
-    showRef: (workDir) -> 
+    showRef: (workDir, callback) -> 
 
         gitDir = git.gitDir workDir
         branch = git.showBranch workDir

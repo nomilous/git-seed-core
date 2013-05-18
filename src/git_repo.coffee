@@ -1,34 +1,28 @@
 require 'colors'
+console.log 'remove colors'
 GitSupport = require './git_support'
 Shell      = require './shell'
 Findit     = require 'findit'
+w          = require 'when'
 
 class GitRepo
 
-    @init: (repoDir, seq) -> 
-
-        #
-        # Initialise from repo in workDir
-        #
-
-        return new GitRepo
-
-            root:    seq == 0
-            path:    repoDir
-            origin:  GitSupport.showOrigin repoDir
-            branch:  GitSupport.showBranch repoDir
-            ref:     GitSupport.showRef repoDir
-
-
-    @search: (rootRepoDir, Plugin, deferral, callback) -> 
+    @search: (rootRepoDir, Plugin, masterDefer, callback) -> 
 
         #
         # Search for nested repos
-        #
+        # 
+        # <masterDefer> Attached to a controling daemon/cli
+        #               Mainly for notification
+        # 
+        # <callback>    Um, mid refactor...
+        #               callback with array of GitRepo's (these)
+        # 
 
         arrayOfGitWorkdirs = []
-        list  = {}
-        find  = Findit.find rootRepoDir
+        list   = {}
+        find   = Findit.find rootRepoDir
+
 
         find.on 'directory', (dir, stat) -> 
 
@@ -36,7 +30,7 @@ class GitRepo
 
                 return unless typeof list[match[1]] == 'undefined'
 
-                deferral.notify
+                masterDefer.notify
 
                     #
                     # build actual notification system later
@@ -45,9 +39,10 @@ class GitRepo
 
                     cli: 
 
-                        context: 'found'
-                        message: "#{match[1]}/.git"
-                        
+                        context: 'good'
+                        event: 'found repo'
+                        detail: "#{match[1]}/.git"
+
 
                 list[match[1]] = 1
                 arrayOfGitWorkdirs.push match[1]
@@ -55,14 +50,52 @@ class GitRepo
 
         find.on 'end', ->
 
-            packages = []
+            # packages = []
             seq = 0
+
+            #
+            # a promise for each repo
+            #
+
+            promises = []
 
             for path in arrayOfGitWorkdirs
 
-                packages.push Plugin.Package.init path, seq++
+                defer = w.defer()
+                promises.push defer.promise
+                Plugin.Package.init path, seq++, masterDefer, defer
 
-            callback null, packages
+            
+            callback null, []
+
+
+    @init: (repoDir, seq, masterDefer, defer) -> 
+
+        #
+        # Initialise from repo in repoDir
+        # 
+        # <masterDefer> Attached to controling daemon/cli
+        #               Mainly for notification
+        # 
+        # <defer>       To be resolved with the repo details
+        #               or rejected.
+        # 
+
+        defer.resolve 
+
+            root:    seq == 0
+            path:    repoDir
+            origin:  ''
+            branch:  ''
+            ref:     ''
+
+        # return new GitRepo
+
+        #     root:    seq == 0
+        #     path:    repoDir
+        #     origin:  GitSupport.showOrigin repoDir
+        #     branch:  GitSupport.showBranch repoDir
+        #     ref:     GitSupport.showRef repoDir
 
 
     constructor: (properties) ->

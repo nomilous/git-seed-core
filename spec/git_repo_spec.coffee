@@ -31,21 +31,36 @@ require('nez').realize 'GitRepo', (GitRepo, test, it, should, GitSupport, findit
 
 
 
-    it 'initializes a GitRepo from the actual repo in the specified dir', (done) ->
+    it 'resolves a promise to gather info on a git repo', (done) ->
 
-        repo = GitRepo.init( '.', 1 )
+        masterDefer = 
+            notify: -> 
 
-        repo.origin.should.equal 'ORIGIN'
-        repo.root.should.equal false
-        repo.branch.should.equal 'BRANCH'
-        repo.ref.should.equal 'REF'
+        defer = 
+            resolve: (repo) -> 
+                repo.origin.should.equal 'ORIGIN'
+                repo.root.should.equal false
+                repo.branch.should.equal 'BRANCH'
+                repo.ref.should.equal 'REF'
+                test done
 
-        test done
+            reject: -> 
+
+        GitRepo.init( '.', 1, deferral )
 
     it 'creates the repo as root if the seq is zero', (done) -> 
 
-        GitRepo.init( '.', 0 ).root.should.equal true
-        test done
+        masterDefer = 
+            notify: -> 
+            
+        defer = 
+            resolve: (repo) -> 
+                repo.root.should.equal true
+                test done
+
+            reject: -> 
+
+        GitRepo.init( '.', 0, deferral )
 
 
     it 'defines search() to recurse for nested repos', (done) -> 
