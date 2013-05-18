@@ -57,26 +57,29 @@ class GitRepo
 
         find.on 'end', ->
 
-            # packages = []
             seq = 0
-
-            #
-            # a promise for each repo
-            #
-
+            packages = []
             promises = []
 
             for path in arrayOfGitWorkdirs
 
                 defer = w.defer()
                 promises.push defer.promise
+                defer.promise.then( 
+
+                    success = (repo) -> packages.push repo
+                    error = (reason) -> # hmmm... getting lazy...  
+
+                )
                 Plugin.Package.init path, seq++, masterDefer, defer
 
 
-            w.all( promises ).then -> 
+            w.all( promises ).then(
 
-                callback null, []
+                success = -> callback null, packages
+                error = (reason) -> callback reason
 
+            )
 
     @init: (repoDir, seq, masterDefer, defer) -> 
 
@@ -118,10 +121,7 @@ class GitRepo
             branchDefer.promise
             versionDefer.promise
 
-        ]).then -> 
-
-            console.log repo
-            defer.resolve repo
+        ]).then -> defer.resolve repo
 
 
 
