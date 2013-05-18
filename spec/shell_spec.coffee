@@ -12,4 +12,9 @@ require('nez').realize 'Shell', (Shell, test, context, should) ->
             Shell.gotDirectory('./not').should.equal false
             test done
 
-        
+        it 'can spawn a shell process and callback', (done) -> 
+
+            Shell.spawn 'echo', ['moooo'], (error, result) -> 
+
+                result.stdout.should.match /moooo/
+                test done

@@ -29,26 +29,36 @@ module.exports = shell =
 
     spawn: (command, opts, callback) -> 
 
+        #
+        # not for long running or very talkative processes
+        # stdout and stderr acumulate to string... RAM!!
+        # 
+        # calls back with error
+        # or error = null and result = { code: 0, stdout: '', stderr: ''}
+        #
+
         console.log '(run)'.bold, command, opts.join ' '
 
         child = spawn command, opts
 
-        #
-        # TODO: optionally read these into result
-        #
-
-        child.stdout.pipe process.stdout
-        child.stderr.pipe process.stderr
+        stdout = ''
+        stderr = ''
+        child.stdout.on 'data', (data) -> stdout += data.toString()
+        child.stderr.on 'data', (data) -> stderr += data.toString()
 
         child.on 'close', (code, signal) ->
 
-            if code > 0
+            if code > 0 
 
                 callback new Error "'#{command} #{opts.join(' ')}'" + ' exited with errorcode: ' + code
 
             else 
 
-                callback null
+                callback null, 
+                    code: code
+                    stdout: stdout
+                    stderr: stderr
+
 
     spawnAt: (at, command, opts, callback) -> 
 
