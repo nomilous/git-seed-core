@@ -145,7 +145,7 @@ class GitRepo
 
     constructor: (properties) ->
 
-        #console.log 'construct git repo:', arguments
+        console.log 'construct git repo:', properties
 
         for property of properties
 

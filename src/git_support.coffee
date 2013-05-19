@@ -18,7 +18,7 @@ module.exports = git =
                 '--get'
                 'remote.origin.url'
 
-            ], (error, result) -> 
+            ], null, (error, result) -> 
 
                 if error then return callback error
                 callback null, result.stdout.trim()

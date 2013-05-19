@@ -27,7 +27,7 @@ module.exports = shell =
         #     throw error
 
 
-    spawn: (command, opts, callback) -> 
+    spawn: (command, opts, masterDefer, callback) -> 
 
         #
         # not for long running or very talkative processes
@@ -37,7 +37,15 @@ module.exports = shell =
         # or error = null and result = { code: 0, stdout: '', stderr: ''}
         #
 
-        console.log '(run)'.bold, command, opts.join ' '
+        if masterDefer and typeof masterDefer.notify == 'function'
+
+            masterDefer.notify
+
+                cli:
+
+                    context: 'good'
+                    event: 'shell'
+                    detail: "#{command} #{opts.join}"
 
         child = spawn command, opts
 

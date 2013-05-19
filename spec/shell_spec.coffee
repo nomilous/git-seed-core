@@ -14,7 +14,7 @@ require('nez').realize 'Shell', (Shell, test, context, should) ->
 
         it 'can spawn a shell process and callback', (done) -> 
 
-            Shell.spawn 'echo', ['moooo'], (error, result) -> 
+            Shell.spawn 'echo', ['moooo'], null, (error, result) -> 
 
                 result.stdout.should.match /moooo/
                 test done
