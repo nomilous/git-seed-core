@@ -49,26 +49,33 @@ module.exports = git =
                 callback error, data.toString().trim()
 
 
-
-
-
-
-    showStatus: (workDir, log) -> 
+    getStatus: (workDir, callback) -> 
 
         gitDir = git.gitDir workDir
 
-        try
+        Shell.spawn 'git', [
 
-            return Shell.execSync( 
+            "--git-dir=#{gitDir}"
+            "--work-tree=#{workDir}"
+            'status'
 
-                "git --git-dir=#{gitDir} --work-tree=#{workDir} status", log
+        ], null, callback
 
-            )
 
-        catch error
 
-            console.log error.red
-            throw error
+
+        # try
+
+        #     return Shell.execSync( 
+
+        #         "git --git-dir=#{gitDir} --work-tree=#{workDir} status", log
+
+        #     )
+
+        # catch error
+
+        #     console.log error.red
+        #     throw error
 
 
     gitDir: (workDir) -> 

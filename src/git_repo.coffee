@@ -145,8 +145,6 @@ class GitRepo
 
     constructor: (properties) ->
 
-        console.log 'construct git repo:', properties
-
         for property of properties
 
             @[property] = properties[property]
@@ -163,42 +161,55 @@ class GitRepo
                 @[property] = 'ROOT_REPO_REF'
 
 
-    printMissing: -> 
+    notifyMissing: (masterDefer) -> 
 
-        console.log "(MISSING) repo: #{@path}".red
+        masterDefer.notify 
+
+            cli: 
+
+                context: 'bad'
+                event: 'missing repo'
+                detail: "#{@path}"
+
         false
 
 
-    printStatus: -> 
+    getStatus: (masterDefer) ->
 
         unless Shell.gotDirectory @path + '/.git'
             
-            return @printMissing()
+            return notifyMissing masterDefer
 
-        status = GitSupport.showStatus @path, false
-
-        #
-        # lazy moment (revist this properly)
-        #
-
-        show = true
-
-        if status.match /nothing to commit \(working directory clean\)/
-
-            show = false
-
-        if status.match /Your branch is ahead/
+        GitSupport.getStatus @path, (error, status) => 
 
             show = true
 
-        if show
+            if status.stdout.match /nothing to commit \(working directory clean\)/
 
-            console.log '\n(change)'.green, @path.bold
-            console.log status + '\n'
+                show = false
 
-        else
+            if status.stdout.match /Your branch is ahead/
 
-            console.log '(skip)'.green, "no change at #{@path}"
+                show = true
+
+            if show
+
+                context = 'good'
+                event   = 'changed'
+                detail  = @path + '\n' + status.stdout
+
+            else
+                context = 'good'
+                event   = 'unchanged'
+                detail  = @path
+
+            masterDefer.notify
+
+                cli:
+
+                    context: context
+                    event: event
+                    detail: detail
 
 
     clone: (callback) ->
