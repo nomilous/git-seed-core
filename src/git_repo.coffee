@@ -1,9 +1,11 @@
 require 'colors'
 console.log 'remove colors'
-GitSupport = require './git_support'
-Shell      = require './shell'
+#GitSupport = require './git_support'
+#Shell      = require './shell'
 Findit     = require 'findit'
-w          = require 'when'
+#w          = require 'when'
+sequence   = require 'when/sequence'
+nodefn     = require 'when/node/function'
 
 class GitRepo
 
@@ -14,35 +16,61 @@ class GitRepo
     @manager: -> 'none'
 
 
+    #
+    # `GitRepo.search()`
+    # 
+    # Calls back with array of initialized GitRepo(s)
+    #
+
+    @search: (rootRepoDir, Plugin, masterDefer, callback) -> 
+
+        find  = Findit.find rootRepoDir
+        uniq  = {}
+        found = []
+
+        find.on 'directory', (dir, stat) -> 
+
+            if match = dir.match /(.*)\/.git\//
+
+                return unless typeof uniq[match[1]] == 'undefined'
+                uniq[match[1]] = 1
+
+                masterDefer.notify.event.good 'found repo', "#{match[1]}/.git"
+                found.push match[1]
+        
+
+        find.on 'end', ->
+
+            seq   = 0
+            paths = []
+
+            sequence( for path in found 
+
+                paths.unshift path
+                -> nodefn.call Plugin.Package.init, paths.pop(), seq++, masterDefer
+
+            ).then( 
+
+                success = (repos) -> callback null, repos
+                failed = (error) -> callback error
+
+            )
 
 
+    #
+    # `GitRepo.init()`
+    # 
+    # Calls back with an initialized GitRepo(s)
+    #
 
 
+    @init: (repoDir, seq, masterDefer, callback) -> 
 
+        callback null, {  
 
+            repo: seq
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        }
 
 
     # @search: (rootRepoDir, Plugin, masterDefer, callback) -> 
