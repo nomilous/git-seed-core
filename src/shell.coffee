@@ -1,6 +1,7 @@
 spawn  = require('child_process').spawn
 colors = require 'colors' 
-fs     = require 'fs'
+fs     = require 'fs-extra'
+defer  = require('when').defer
 
 module.exports = shell = 
 
@@ -14,17 +15,17 @@ module.exports = shell =
 
             return false
 
-    makeDirectory: (directory) ->
 
-        throw Error 'makeDirectory()'
-        # try
+    promiseDirectory: (directory) -> 
 
-        #     exec "mkdir -p #{directory}"
+        d = defer()
 
-        # catch error
+        fs.mkdirp directory, (err) -> 
 
-        #     console.log error.red
-        #     throw error
+            if err then return d.reject err
+            d.resolve directory
+
+        d.promise
 
 
     spawn: (command, opts, masterDefer, callback) -> 
@@ -42,10 +43,9 @@ module.exports = shell =
             masterDefer.notify
 
                 cli:
-
-                    context: 'good'
+                    context: 'normal'
                     event: 'shell'
-                    detail: "#{command} #{opts.join}"
+                    detail: "#{command} #{opts.join(' ')}"
 
         child = spawn command, opts
 
@@ -68,7 +68,7 @@ module.exports = shell =
                     stderr: stderr
 
 
-    spawnAt: (at, command, opts, callback) -> 
+    spawnAt: (at, command, opts, masterDefer, callback) -> 
 
         unless at.directory
 
@@ -85,12 +85,10 @@ module.exports = shell =
 
             child = spawn command, opts
 
-            #
-            # TODO: optionally read these into result
-            #
-
-            child.stdout.pipe process.stdout
-            child.stderr.pipe process.stderr
+            stdout = ''
+            stderr = ''
+            child.stdout.on 'data', (data) -> stdout += data.toString()
+            child.stderr.on 'data', (data) -> stderr += data.toString()
 
             child.on 'close', (code, signal) ->
 
@@ -102,8 +100,10 @@ module.exports = shell =
                 else 
 
                     process.chdir originalDir
-                    callback null
-
+                    callback null, 
+                        code: code
+                        stdout: stdout
+                        stderr: stderr
 
         catch error
 
