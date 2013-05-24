@@ -1,5 +1,5 @@
 GitSupport = require './git_support'
-#Shell      = require './shell'
+Shell      = require './shell'
 Findit     = require 'findit'
 #w          = require 'when'
 sequence   = require 'when/sequence'
@@ -91,22 +91,51 @@ class GitRepo
         )
 
 
-    # constructor: (properties) ->
+    #
+    # `GitRepo.getStatus()`
+    # 
+    # Calls back with repo statii
+    #
 
-    #     for property of properties
+    @getStatus: (repo, masterDefer, callback) -> 
 
-    #         @[property] = properties[property]
+        unless Shell.gotDirectory repo.path + '/.git'
 
-    #         if property == 'ref' and @root
+            masterDefer.notify.info.bad 'missing repo', repo.path
+            callback null, {}
+            return
 
-    #             #
-    #             # root repo has special ref
-    #             # 
-    #             # - no need to carry the root repo ref
-    #             # - catch22 on root commit if we do
-    #             # 
 
-    #             @[property] = 'ROOT_REPO_REF'
+        GitSupport.getStatus repo.path, (error, status) -> 
+
+            if status.stdout.match /nothing to commit \(working directory clean\)/
+
+                masterDefer.notify.info.good 'unchanged', repo.path 
+                callback null, {}
+                return
+
+            masterDefer.notify.info.good 'changed',
+                description: repo.path
+                detail: status.stdout
+
+
+            callback null, {}
+
+
+
+    constructor: (properties) ->
+
+        for property of properties
+
+            @[property] = properties[property]
+
+            if property == 'ref' and @root
+
+                @[property] = 'ROOT_REPO_REF'
+
+
+
+
 
 
     # notifyMissing: (masterDefer) -> 

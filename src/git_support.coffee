@@ -53,17 +53,17 @@ module.exports = git =
                 callback error, data.toString().trim()
 
 
-    # getStatus: (workDir, callback) -> 
+    getStatus: (workDir, callback) -> 
 
-    #     gitDir = git.gitDir workDir
+        gitDir = git.gitDir workDir
 
-    #     Shell.spawn 'git', [
+        Shell.spawn 'git', [
 
-    #         "--git-dir=#{gitDir}"
-    #         "--work-tree=#{workDir}"
-    #         'status'
+            "--git-dir=#{gitDir}"
+            "--work-tree=#{workDir}"
+            'status'
 
-    #     ], null, callback
+        ], null, callback
 
 
     gitDir: (workDir) -> 

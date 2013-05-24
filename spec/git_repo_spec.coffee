@@ -1,109 +1,63 @@
 require('nez').realize 'GitRepo', (GitRepo, test, it, should, GitSupport, findit) -> 
 
+    #
+    # Mocks
+    #
 
+    GitSupport.getOrigin = (dir, callback) -> callback null, 'ORIGIN'
+    GitSupport.getHeadRef = (dir, callback) -> callback null, 'BRANCH'
+    GitSupport.getHeadVersion = (dir, callback) -> callback null, 'REF'
 
+    findit.find = (path) -> 
+        path.should.equal 'PATH'
+        on: (event, callback) ->
+            switch event
+                when 'directory'
 
+                    #
+                    # pretend to find two git repos
+                    #
 
-
-
-
-
-
-
-
-
-
-
-
-
-    # #
-    # # Mocks
-    # #
-
-    # GitSupport.getOrigin = (dir, callback) -> callback null, 'ORIGIN'
-    # GitSupport.getHeadRef = (dir, callback) -> callback null, 'BRANCH'
-    # GitSupport.getHeadVersion = (dir, callback) -> callback null, 'REF'
-
-    # findit.find = (path) -> 
-
-    #     path.should.equal 'PATH'
-
-    #     on: (event, callback) ->
-
-    #         switch event
-
-    #             when 'directory'
-
-    #                 #
-    #                 # pretend to find two git repos
-    #                 #
-
-    #                 callback 'pretend/repo/.git/'
-    #                 callback 'pretend/repo/node_modules/deeper/.git/'
+                    callback 'pretend/repo/.git/'
+                    callback 'pretend/repo/node_modules/deeper/.git/'
                 
-    #             when 'end'
-
-    #                 callback()
-
+                when 'end'
+                    callback()
 
 
-    # it 'resolves a promise to gather info on a git repo', (done) ->
+    it 'search() finds and loads repos', (done) -> 
 
-    #     masterDefer = 
-    #         notify: -> 
+        GitRepo.search 'PATH', { Package: GitRepo }, {
 
-    #     defer = 
-    #         resolve: (repo) -> 
-    #             repo.origin.should.equal 'ORIGIN'
-    #             repo.root.should.equal false
-    #             repo.branch.should.equal 'BRANCH'
-    #             repo.ref.should.equal 'REF'
-    #             test done
+            notify: event: good: (message) -> 
 
-    #         reject: -> 
+        }, (err, repos) -> 
 
-    #     GitRepo.init( '.', 1, masterDefer, defer )
+            repos.should.eql [ { 
+                root: true
+                path: 'pretend/repo'
+                manager: 'none'
+                origin: 'ORIGIN'
+                branch: 'BRANCH'
+                ref: 'REF' 
+            }, { 
+                root: false
+                path: 'pretend/repo/node_modules/deeper'
+                manager: 'none'
+                origin: 'ORIGIN'
+                branch: 'BRANCH'
+                ref: 'REF' 
+            } ]
 
-    # it 'creates the repo as root if the seq is zero', (done) -> 
+            test done
 
-    #     masterDefer = 
-    #         notify: -> 
+    it 'constructor sets the root repo ref to ROOT_REPO_REF', (done) -> 
 
-    #     defer = 
-    #         resolve: (repo) -> 
-    #             repo.root.should.equal true
-    #             test done
+        repo = new GitRepo 
 
-    #         reject: -> 
+            root: true
+            ref: 'b371c0c5680a00f1da1b1ec1824e33100f713abf'
 
-    #     GitRepo.init( '.', 0, masterDefer, defer )
-
-
-    # it 'defines search() to recurse for nested repos', (done) -> 
-
-    #     GitRepo.search.should.be.an.instanceof Function
-    #     test done
-
-
-    # it 'callsback with an array of found repositories and notifies the deferral on each', (done) -> 
-
-    #     found = []
-
-    #     callback = (error, result) -> 
-
-    #         found[0].should.equal 'pretend/repo/.git'
-    #         found[1].should.equal 'pretend/repo/node_modules/deeper/.git'
-
-    #         result[0].constructor.name.should.equal 'GitRepo'
-    #         result[0].root.should.equal true
-    #         result[1].root.should.equal false
-    #         result.length.should.equal 2
-    #         test done
-
-    #     GitRepo.search 'PATH', { Package: GitRepo }, {
-
-    #         notify: (status) -> found.push status.cli.message
-
-    #     }, callback
-
+        repo.ref.should.equal 'ROOT_REPO_REF'
+        test done
 

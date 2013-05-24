@@ -17,18 +17,6 @@ module.exports = shell =
             return false
 
 
-    promiseDirectory: (directory) -> 
-
-        d = defer()
-
-        fs.mkdirp directory, (err) -> 
-
-            if err then return d.reject err
-            d.resolve directory
-
-        d.promise
-
-
     spawn: (command, opts, masterDefer, callback) -> 
 
         #
