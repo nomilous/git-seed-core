@@ -1,3 +1,4 @@
+console.log 'remove colors'
 spawn  = require('child_process').spawn
 colors = require 'colors' 
 fs     = require 'fs-extra'

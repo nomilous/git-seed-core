@@ -9,48 +9,48 @@ module.exports = git =
     junk: ->
     
 
-    # getOrigin: (workDir, callback) -> 
+    getOrigin: (workDir, callback) -> 
 
-    #     gitDir = git.gitDir workDir
+        gitDir = git.gitDir workDir
         
-    #     try
+        try
 
-    #         Shell.spawn 'git', [
+            Shell.spawn 'git', [
 
-    #             "--git-dir=#{gitDir}"
-    #             'config'
-    #             '--get'
-    #             'remote.origin.url'
+                "--git-dir=#{gitDir}"
+                'config'
+                '--get'
+                'remote.origin.url'
 
-    #         ], null, (error, result) -> 
+            ], null, (error, result) -> 
 
-    #             if error then return callback error
-    #             callback null, result.stdout.trim()
+                if error then return callback error
+                callback null, result.stdout.trim()
 
-    #     catch error
+        catch error
 
-    #         callback error
-
-
-    # getHeadRef: (workDir, callback) -> 
-
-    #     gitDir = git.gitDir workDir
-    #     fs.readFile "#{gitDir}/HEAD", (error, data) ->
-
-    #         if error then return callback error
-    #         callback null, data.toString().match(/ref: (.*)\n$/)[1]
+            callback error
 
 
-    # getHeadVersion: (workDir, callback) -> 
+    getHeadRef: (workDir, callback) -> 
 
-    #     gitDir = git.gitDir workDir
-    #     git.getHeadRef workDir, (error, head) -> 
+        gitDir = git.gitDir workDir
+        fs.readFile "#{gitDir}/HEAD", (error, data) ->
 
-    #         if error then return callback error
-    #         fs.readFile "#{gitDir}/#{head}", (error, data) ->
+            if error then return callback error
+            callback null, data.toString().match(/ref: (.*)\n$/)[1]
 
-    #             if error then return callback error
-    #             callback error, data.toString().trim()
+
+    getHeadVersion: (workDir, callback) -> 
+
+        gitDir = git.gitDir workDir
+        git.getHeadRef workDir, (error, head) -> 
+
+            if error then return callback error
+            fs.readFile "#{gitDir}/#{head}", (error, data) ->
+
+                if error then return callback error
+                callback error, data.toString().trim()
 
 
     # getStatus: (workDir, callback) -> 
@@ -66,9 +66,9 @@ module.exports = git =
     #     ], null, callback
 
 
-    # gitDir: (workDir) -> 
+    gitDir: (workDir) -> 
 
-    #     workDir + '/.git'
+        workDir + '/.git'
 
 
     # showStagedDiffs: (workDir) -> 

@@ -1,6 +1,4 @@
-require 'colors'
-console.log 'remove colors'
-#GitSupport = require './git_support'
+GitSupport = require './git_support'
 #Shell      = require './shell'
 Findit     = require 'findit'
 #w          = require 'when'
@@ -24,9 +22,10 @@ class GitRepo
 
     @search: (rootRepoDir, Plugin, masterDefer, callback) -> 
 
-        find  = Findit.find rootRepoDir
-        uniq  = {}
-        found = []
+        find    = Findit.find rootRepoDir
+        uniq    = {}
+        found   = []
+        manager = @manager()
 
         find.on 'directory', (dir, stat) -> 
 
@@ -43,16 +42,17 @@ class GitRepo
 
             seq   = 0
             paths = []
-
-            sequence( for path in found 
-
+            tasks = sequence( for path in found 
+                
                 paths.unshift path
-                -> nodefn.call Plugin.Package.init, paths.pop(), seq++, masterDefer
+                -> nodefn.call Plugin.Package.init, paths.pop(), seq++, manager, masterDefer
 
-            ).then( 
+            )
+
+            tasks.then( 
 
                 success = (repos) -> callback null, repos
-                failed = (error) -> callback error
+                failed  = (error) -> callback error
 
             )
 
@@ -60,145 +60,35 @@ class GitRepo
     #
     # `GitRepo.init()`
     # 
-    # Calls back with an initialized GitRepo(s)
+    # Calls back with an initialized GitRepo
     #
 
+    @init: (repoDir, seq, manager, masterDefer, callback) -> 
 
-    @init: (repoDir, seq, masterDefer, callback) -> 
+        tasks = sequence [
 
-        callback null, {  
+            -> nodefn.call GitSupport.getOrigin, repoDir
+            -> nodefn.call GitSupport.getHeadRef, repoDir
+            -> nodefn.call GitSupport.getHeadVersion, repoDir
 
-            repo: seq
+        ] 
 
-        }
+        tasks.then(
 
+            success = (results) -> 
 
-    # @search: (rootRepoDir, Plugin, masterDefer, callback) -> 
+                callback null, 
 
-    #     #
-    #     # Search for nested repos
-    #     # 
-    #     # <masterDefer> Attached to a controling daemon/cli
-    #     #               Mainly for notification
-    #     # 
-    #     # <callback>    Um, mid refactor...
-    #     #               callback with array of GitRepo's (these)
-    #     # 
+                    root:    seq == 0
+                    path:    repoDir
+                    manager: manager
+                    origin:  results[0]
+                    branch:  results[1]
+                    ref:     results[2]
+                
+            failed  = (error)  -> callback error
 
-    #     arrayOfGitWorkdirs = []
-    #     list   = {}
-    #     find   = Findit.find rootRepoDir
-
-
-    #     find.on 'directory', (dir, stat) -> 
-
-    #         if match = dir.match /(.*)\/.git\//
-
-    #             return unless typeof list[match[1]] == 'undefined'
-
-    #             masterDefer.notify
-
-    #                 #
-    #                 # build actual notification system later
-    #                 # just for cli for now
-    #                 #
-
-    #                 cli: 
-
-    #                     context: 'good'
-    #                     event: 'found repo'
-    #                     detail: "#{match[1]}/.git"
-
-
-    #             list[match[1]] = 1
-    #             arrayOfGitWorkdirs.push match[1]
-
-
-    #     find.on 'end', ->
-
-    #         seq = 0
-    #         packages = []
-    #         promises = []
-
-    #         for path in arrayOfGitWorkdirs
-
-    #             defer = w.defer()
-    #             promises.push defer.promise
-    #             defer.promise.then( 
-
-    #                 success = (repo) -> packages.push repo
-    #                 error = (reason) -> # hmmm... getting lazy...  
-
-    #             )
-    #             Plugin.Package.init path, seq++, masterDefer, defer
-
-
-    #         w.all( promises ).then(
-
-    #             success = -> callback null, packages
-    #             error = (reason) -> callback reason
-
-    #         )
-
-    # @init: (repoDir, seq, masterDefer, defer) -> 
-
-    #     #
-    #     # Initialise from repo in repoDir
-    #     # 
-    #     # <masterDefer> Attached to controling daemon/cli
-    #     #               Mainly for notification
-    #     # 
-    #     # <defer>       To be resolved with the repo details
-    #     #               or rejected.
-    #     # 
-
-    #     repo = 
-    #         root: seq == 0
-    #         path: repoDir
-    #         manager: @manager()
-
-
-    #     #
-    #     # create '"sub"' deferrals for all 
-    #     # the calls requireing async lookup 
-    #     #
-
-    #     originDefer  = w.defer()
-    #     branchDefer  = w.defer()
-    #     versionDefer = w.defer()
-
-
-
-    #     #
-    #     # pend repo resolve to after all 
-    #     # '"sub"' deferrals are resolved
-    #     #
-
-    #     w.all([
-
-    #         originDefer.promise
-    #         branchDefer.promise
-    #         versionDefer.promise
-
-    #     ]).then -> defer.resolve repo
-
-
-
-    #     #
-    #     # each callback resolves its '"sub"' deferral
-    #     #
-
-    #     GitSupport.getOrigin repoDir, (error, origin) -> 
-    #         repo.origin = origin
-    #         originDefer.resolve()
-
-    #     GitSupport.getHeadRef repoDir, (error, branch) -> 
-    #         repo.branch = branch
-    #         branchDefer.resolve()
-
-    #     GitSupport.getHeadVersion repoDir, (error, version) -> 
-    #         repo.ref = version
-    #         versionDefer.resolve()
+        )
 
 
     # constructor: (properties) ->
