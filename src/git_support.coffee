@@ -1,13 +1,16 @@
 Shell     = require './shell'
 colors    = require 'colors'
 fs        = require 'fs' 
-sequence  = require 'when/sequence' 
+sequence  = require 'when/sequence'
+nodefn    = require 'when/node/function'
+defer     = require('when').defer
+mkdirp    = require('fs-extra').mkdirp
+
+
 
 
 module.exports = git =
 
-    junk: ->
-    
 
     getOrigin: (workDir, callback) -> 
 
@@ -32,6 +35,7 @@ module.exports = git =
             callback error
 
 
+
     getHeadRef: (workDir, callback) -> 
 
         gitDir = git.gitDir workDir
@@ -39,6 +43,7 @@ module.exports = git =
 
             if error then return callback error
             callback null, data.toString().match(/ref: (.*)\n$/)[1]
+
 
 
     getHeadVersion: (workDir, callback) -> 
@@ -51,6 +56,7 @@ module.exports = git =
 
                 if error then return callback error
                 callback error, data.toString().trim()
+
 
 
     getStatus: (workDir, callback) -> 
@@ -66,9 +72,67 @@ module.exports = git =
         ], null, callback
 
 
+
     gitDir: (workDir) -> 
 
         workDir + '/.git'
+
+
+    clone: (workDir, origin, branch, masterDefer, callback) -> 
+
+        gitDir = git.gitDir workDir
+
+        tasks  = sequence [
+
+            -> 
+                nodefn.call mkdirp, workDir
+
+            -> 
+
+                #
+                # bit messy here, needs to exit the sequence 
+                # if the .git folder is already present for
+                # this repo (already cloned)
+                # 
+                # but without terminating the super-sequence
+                # because the next repo may still need cloning
+                #
+
+                dfer = defer()
+
+                if Shell.gotDirectory gitDir
+                    dfer.reject 'already cloned'
+
+                else 
+                    dfer.resolve()
+
+                dfer.promise
+
+            -> 
+                nodefn.call Shell.spawn, 'git', ['clone', origin, workDir], masterDefer
+                
+
+        ]
+
+        tasks.then(
+
+            (result) -> callback null, result
+            (error)  -> 
+
+                unless error == 'already cloned'
+                    callback error
+                    return
+
+                masterDefer.notify.info.good 'already cloned', workDir
+                callback null, {}
+
+
+
+        )
+
+        
+
+
 
 
     # showStagedDiffs: (workDir) -> 

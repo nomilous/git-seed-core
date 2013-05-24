@@ -92,12 +92,12 @@ class GitRepo
 
 
     #
-    # `GitRepo.getStatus()`
+    # `GitRepo.status()`
     # 
     # Calls back with repo statii
     #
 
-    @getStatus: (repo, masterDefer, callback) -> 
+    @status: (repo, masterDefer, callback) -> 
 
         unless Shell.gotDirectory repo.path + '/.git'
 
@@ -119,7 +119,18 @@ class GitRepo
                 detail: status.stdout
 
 
-            callback null, {}
+            callback null, status
+
+
+    #
+    # `GitRepo.clone()`
+    # 
+    # Performs clone
+    #
+
+    @clone: (repo, masterDefer, callback) -> 
+
+        GitSupport.clone repo.path, repo.origin, repo.branch, masterDefer, callback
 
 
 

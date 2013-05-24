@@ -10,7 +10,7 @@ module.exports = shell =
 
         try 
 
-            return fs.lstatSync( directory ).isDirectory()
+            return fs.lstatSync( directory ).isDirectory()             
 
         catch error
 
@@ -29,12 +29,8 @@ module.exports = shell =
 
         if masterDefer and typeof masterDefer.notify == 'function'
 
-            masterDefer.notify
-
-                cli:
-                    context: 'normal'
-                    event: 'shell'
-                    detail: "#{command} #{opts.join(' ')}"
+            try 
+                masterDefer.notify.info.normal 'shell', "#{command} #{opts.join(' ')}"
 
         child = spawn command, opts
 
