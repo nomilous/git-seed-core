@@ -113,11 +113,21 @@ module.exports = git =
         callback null
 
 
+    wrongBranch: (workDir, branch, callback) -> 
+
+        git.getHeadRef workDir, (error, headRef) ->
+
+            return callback 'wrong branch' if headRef != branch
+            callback null
+
+
+
     status: (workDir, origin, branch, superTask, callback) -> 
 
         sequence( [
 
             -> nodefn.call git.missingRepo, workDir
+            -> nodefn.call git.wrongBranch, workDir, branch
 
 
         ] ).then(
@@ -125,9 +135,19 @@ module.exports = git =
             (result) -> callback null, result
             (error)  -> 
 
+                #
+                # #duplication
+                #
+
                 if error == 'missing repo'
 
                     superTask.notify.info.bad 'missing repo', workDir
+                    callback null, {}
+                    return
+
+                if error == 'wrong branch'
+
+                    superTask.notify.info.bad 'wrong branch', workDir
                     callback null, {}
                     return
 
@@ -189,18 +209,34 @@ module.exports = git =
         sequence( [
 
             -> nodefn.call git.missingRepo, workDir
+            -> nodefn.call git.wrongBranch, workDir, branch
 
         ] ).then(
 
             (result) -> 
+
                 superTask.notify.info.normal 'committed', workDir
                 callback null, result
 
             (error)  -> 
 
-                return callback error unless error == 'missing repo'
-                superTask.notify.info.bad 'missing repo', workDir
-                callback null, {}
+                #
+                # #duplication
+                #
+
+                if error == 'missing repo'
+
+                    superTask.notify.info.bad 'missing repo', workDir
+                    callback null, {}
+                    return
+
+                if error == 'wrong branch'
+
+                    superTask.notify.info.bad 'wrong branch', workDir
+                    callback null, {}
+                    return
+
+                callback error
 
         )
 
