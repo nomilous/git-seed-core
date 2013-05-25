@@ -56,17 +56,17 @@ module.exports = git =
 
 
 
-    getStatus: (workDir, callback) -> 
+    # getStatus: (workDir, callback) -> 
 
-        gitDir = git.gitDir workDir
+    #     gitDir = git.gitDir workDir
 
-        Shell.spawn 'git', [
+    #     Shell.spawn 'git', [
 
-            "--git-dir=#{gitDir}"
-            "--work-tree=#{workDir}"
-            'status'
+    #         "--git-dir=#{gitDir}"
+    #         "--work-tree=#{workDir}"
+    #         'status'
 
-        ], null, callback
+    #     ], null, callback
 
 
 
@@ -111,6 +111,32 @@ module.exports = git =
             return
 
         callback null
+
+
+    status: (workDir, origin, branch, superTask, callback) -> 
+
+        sequence( [
+
+            -> nodefn.call git.missingRepo, workDir
+
+
+        ] ).then(
+
+            (result) -> callback null, result
+            (error)  -> 
+
+                if error == 'missing repo'
+
+                    superTask.notify.info.bad 'missing repo', workDir
+                    callback null, {}
+                    return
+
+                callback error
+
+
+        )
+
+        callback null, {}
 
 
     clone: (workDir, origin, branch, superTask, callback) -> 

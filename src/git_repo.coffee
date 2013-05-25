@@ -98,37 +98,39 @@ class GitRepo
 
     @status: (repo, args, superTask, callback) -> 
 
-        unless Shell.gotDirectory repo.path + '/.git'
+        GitSupport.status repo.path, repo.origin, repo.branch, superTask, callback
 
-            superTask.notify.info.bad 'missing repo', repo.path
-            callback null, {}
-            return
+        # unless Shell.gotDirectory repo.path + '/.git'
 
-
-        GitSupport.getStatus repo.path, (error, status) -> 
-
-            if status.stdout.match /branch is ahead/
-
-                superTask.notify.info.bad 'unpushed', 
-                    description: repo.path
-                    detail: status.stdout
-                callback null, status  
-                return  
+        #     superTask.notify.info.bad 'missing repo', repo.path
+        #     callback null, {}
+        #     return
 
 
+        # GitSupport.getStatus repo.path, (error, status) -> 
 
-            if status.stdout.match /nothing to commit \(working directory clean\)/
+        #     if status.stdout.match /branch is ahead/
 
-                superTask.notify.info.good 'unchanged', repo.path 
-                callback null, {}
-                return
-
-            superTask.notify.info.good 'changed',
-                description: repo.path
-                detail: status.stdout
+        #         superTask.notify.info.bad 'unpushed', 
+        #             description: repo.path
+        #             detail: status.stdout
+        #         callback null, status  
+        #         return  
 
 
-            callback null, status
+
+        #     if status.stdout.match /nothing to commit \(working directory clean\)/
+
+        #         superTask.notify.info.good 'unchanged', repo.path 
+        #         callback null, {}
+        #         return
+
+        #     superTask.notify.info.good 'changed',
+        #         description: repo.path
+        #         detail: status.stdout
+
+
+        #     callback null, status
 
 
     #
