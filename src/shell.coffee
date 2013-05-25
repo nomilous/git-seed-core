@@ -17,7 +17,7 @@ module.exports = shell =
             return false
 
 
-    spawn: (command, opts, masterDefer, callback) -> 
+    spawn: (command, opts, superTask, callback) -> 
 
         #
         # not for long running or very talkative processes
@@ -27,17 +27,26 @@ module.exports = shell =
         # or error = null and result = { code: 0, stdout: '', stderr: ''}
         #
 
-        if masterDefer and typeof masterDefer.notify == 'function'
+        if superTask and typeof superTask.notify == 'function'
 
             try 
-                masterDefer.notify.info.normal 'shell', "#{command} #{opts.join(' ')}"
+                superTask.notify.info.normal 'shell', "run #{command} #{opts.join(' ')}"
 
         child = spawn command, opts
-
+        
         stdout = ''
         stderr = ''
-        child.stdout.on 'data', (data) -> stdout += data.toString()
-        child.stderr.on 'data', (data) -> stderr += data.toString()
+
+        child.stdout.on 'data', (data) -> 
+            str = data.toString()
+            stdout += str
+            if superTask then superTask.notify.stdio.good str
+
+        child.stderr.on 'data', (data) -> 
+            str = data.toString()  
+            stderr += str
+            if superTask then superTask.notify.stdio.bad str
+
 
         child.on 'close', (code, signal) ->
 
@@ -53,7 +62,7 @@ module.exports = shell =
                     stderr: stderr
 
 
-    spawnAt: (at, command, opts, masterDefer, callback) -> 
+    spawnAt: (at, command, opts, superTask, callback) -> 
 
         unless at.directory
 
@@ -66,14 +75,23 @@ module.exports = shell =
 
             process.chdir at.directory
 
-            console.log '(run)'.bold, command, opts.join(' '), "(in #{at.directory})"
+            superTask.notify.info.normal 'shell', "run #{command} #{opts.join(' ')}, (in #{at.directory})"
 
             child = spawn command, opts
 
             stdout = ''
             stderr = ''
-            child.stdout.on 'data', (data) -> stdout += data.toString()
-            child.stderr.on 'data', (data) -> stderr += data.toString()
+
+            child.stdout.on 'data', (data) -> 
+                str = data.toString()
+                stdout += str
+                if superTask then superTask.notify.stdio.good str
+
+            child.stderr.on 'data', (data) -> 
+                str = data.toString()
+                stderr += str
+                if superTask then superTask.notify.stdio.bad str
+                
 
             child.on 'close', (code, signal) ->
 
