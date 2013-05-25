@@ -148,9 +148,9 @@ class GitRepo
     # Commits 
     #
 
-    @commit: (repo, args, logMessage, superTask, callback) -> 
+    @commit: (repo, args, superTask, callback) -> 
 
-        GitSupport.commit repo.path, repo.origin, repo.branch, message, superTask, callback
+        GitSupport.commit repo.path, repo.origin, repo.branch, args.message, superTask, callback
 
 
     #

@@ -98,11 +98,23 @@ module.exports = git =
             # 
 
             callback 'already cloned'
+            return
 
-        else callback null 
+        callback null
 
 
-    clone: (workDir, origin, branch, masterDefer, callback) -> 
+    missingRepo: (workDir, callback) -> 
+
+        gitDir = git.gitDir workDir
+
+        unless Shell.gotDirectory gitDir
+            callback 'missing repo'
+            return
+
+        callback null
+
+
+    clone: (workDir, origin, branch, superTask, callback) -> 
 
         #
         # [1] TODO: use pipeline instead, or something that
@@ -116,8 +128,8 @@ module.exports = git =
 
             -> nodefn.call mkdirp, workDir
             -> nodefn.call git.needClone, workDir  # [1]
-            -> nodefn.call Shell.spawn, 'git', ['clone', origin, workDir], masterDefer
-            -> nodefn.call Shell.spawn, 'git', git.checkoutArgs(workDir, branch), masterDefer
+            -> nodefn.call Shell.spawn, 'git', ['clone', origin, workDir], superTask
+            -> nodefn.call Shell.spawn, 'git', git.checkoutArgs(workDir, branch), superTask
 
             #
             # TODO: it could become necessary to step over the 'already cloned' but 
@@ -141,23 +153,31 @@ module.exports = git =
 
                 return callback error unless error == 'already cloned'
 
-                masterDefer.notify.info.good 'already cloned', workDir
+                superTask.notify.info.good 'already cloned', workDir
                 callback null, {}
 
         )
 
 
-    commit: (workDir, origin, branch, logMessage, masterDefer, callback) -> 
-        
-        console.log 'commit()', 
+    commit: (workDir, origin, branch, logMessage, superTask, callback) -> 
 
-            workDir: workDir
-            branch: branch
-            origin: origin
-            message: logMessage
+        sequence( [
 
-        callback null, {}
+            -> nodefn.call git.missingRepo, workDir
 
+        ] ).then(
+
+            (result) -> 
+                superTask.notify.info.normal 'committed', workDir
+                callback null, result
+
+            (error)  -> 
+
+                return callback error unless error == 'missing repo'
+                superTask.notify.info.bad 'missing repo', workDir
+                callback null, {}
+
+        )
 
 
     # showStagedDiffs: (workDir) -> 
