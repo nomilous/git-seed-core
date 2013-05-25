@@ -34,7 +34,7 @@ class GitRepo
                 return unless typeof uniq[match[1]] == 'undefined'
                 uniq[match[1]] = 1
 
-                masterDefer.notify.event.good 'found repo', "#{match[1]}/.git"
+                masterDefer.notify.info.good 'found repo', "#{match[1]}/.git"
                 found.push match[1]
         
 

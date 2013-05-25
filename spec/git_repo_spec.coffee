@@ -29,7 +29,13 @@ require('nez').realize 'GitRepo', (GitRepo, test, it, should, GitSupport, findit
 
         GitRepo.search 'PATH', { Package: GitRepo }, {
 
-            notify: event: good: (message) -> 
+            notify: 
+                event: 
+                    good: (message) -> 
+                    bad: (message) -> 
+                info: 
+                    good: (message) -> 
+                    bad: (message) -> 
 
         }, (err, repos) -> 
 
