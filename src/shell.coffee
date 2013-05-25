@@ -1,6 +1,4 @@
-console.log 'remove colors'
 spawn  = require('child_process').spawn
-colors = require 'colors' 
 fs     = require 'fs-extra'
 defer  = require('when').defer
 
@@ -33,7 +31,7 @@ module.exports = shell =
                 superTask.notify.info.normal 'shell', "run #{command} #{opts.join(' ')}"
 
         child = spawn command, opts
-        
+
         stdout = ''
         stderr = ''
 

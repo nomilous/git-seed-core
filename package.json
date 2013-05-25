@@ -3,7 +3,6 @@
   "description": "core componenets for git-seed",
   "version": "0.0.2",
   "dependencies": {
-    "colors": "~0.6.0-1",
     "findit": "~0.1.2",
     "when": "~2.1.0",
     "fs-extra": "~0.6.1"

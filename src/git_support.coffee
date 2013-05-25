@@ -1,5 +1,4 @@
 Shell     = require './shell'
-colors    = require 'colors'
 fs        = require 'fs' 
 sequence  = require 'when/sequence'
 nodefn    = require 'when/node/function'

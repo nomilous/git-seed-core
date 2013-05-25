@@ -1,7 +1,6 @@
 GitSupport = require './git_support'
 Shell      = require './shell'
 Findit     = require 'findit'
-#w          = require 'when'
 sequence   = require 'when/sequence'
 nodefn     = require 'when/node/function'
 
