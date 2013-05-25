@@ -56,17 +56,17 @@ module.exports = git =
 
 
 
-    # getStatus: (workDir, callback) -> 
+    getStatus: (workDir, callback) -> 
 
-    #     gitDir = git.gitDir workDir
+        gitDir = git.gitDir workDir
 
-    #     Shell.spawn 'git', [
+        Shell.spawn 'git', [
 
-    #         "--git-dir=#{gitDir}"
-    #         "--work-tree=#{workDir}"
-    #         'status'
+            "--git-dir=#{gitDir}"
+            "--work-tree=#{workDir}"
+            'status'
 
-    #     ], null, callback
+        ], null, callback
 
 
 
@@ -128,11 +128,33 @@ module.exports = git =
 
             -> nodefn.call git.missingRepo, workDir
             -> nodefn.call git.wrongBranch, workDir, branch
+            -> nodefn.call git.getStatus,   workDir
 
 
         ] ).then(
 
-            (result) -> callback null, result
+            (result) -> 
+
+                status = result[2]
+
+                if status.stdout.match /branch is ahead/
+
+                    superTask.notify.info.bad 'unpushed', 
+                        description: repo.path
+                        detail: result.stdout
+                    return callback null, status
+
+                if status.stdout.match /nothing to commit \(working directory clean\)/
+
+                    superTask.notify.info.good 'unchanged', workDir
+                    return callback null, status
+
+                superTask.notify.info.good 'changed',
+                    description: workDir
+                    detail: status.stdout
+
+                callback null, status
+
             (error)  -> 
 
                 #
@@ -147,7 +169,7 @@ module.exports = git =
 
                 if error == 'wrong branch'
 
-                    superTask.notify.info.bad 'wrong branch', workDir
+                    superTask.notify.info.bad 'wrong branch', "#{workDir} - expects #{branch}"
                     callback null, {}
                     return
 
@@ -155,8 +177,6 @@ module.exports = git =
 
 
         )
-
-        callback null, {}
 
 
     clone: (workDir, origin, branch, superTask, callback) -> 
@@ -232,7 +252,7 @@ module.exports = git =
 
                 if error == 'wrong branch'
 
-                    superTask.notify.info.bad 'wrong branch', workDir
+                    superTask.notify.info.bad 'wrong branch', "#{workDir} - expects #{branch}"
                     callback null, {}
                     return
 

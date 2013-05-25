@@ -100,38 +100,6 @@ class GitRepo
 
         GitSupport.status repo.path, repo.origin, repo.branch, superTask, callback
 
-        # unless Shell.gotDirectory repo.path + '/.git'
-
-        #     superTask.notify.info.bad 'missing repo', repo.path
-        #     callback null, {}
-        #     return
-
-
-        # GitSupport.getStatus repo.path, (error, status) -> 
-
-        #     if status.stdout.match /branch is ahead/
-
-        #         superTask.notify.info.bad 'unpushed', 
-        #             description: repo.path
-        #             detail: status.stdout
-        #         callback null, status  
-        #         return  
-
-
-
-        #     if status.stdout.match /nothing to commit \(working directory clean\)/
-
-        #         superTask.notify.info.good 'unchanged', repo.path 
-        #         callback null, {}
-        #         return
-
-        #     superTask.notify.info.good 'changed',
-        #         description: repo.path
-        #         detail: status.stdout
-
-
-        #     callback null, status
-
 
     #
     # `GitRepo.clone()`
