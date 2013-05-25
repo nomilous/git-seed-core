@@ -108,6 +108,16 @@ class GitRepo
 
         GitSupport.getStatus repo.path, (error, status) -> 
 
+            if status.stdout.match /branch is ahead/
+
+                masterDefer.notify.info.bad 'unpushed', 
+                    description: repo.path
+                    detail: status.stdout
+                callback null, status  
+                return  
+
+
+
             if status.stdout.match /nothing to commit \(working directory clean\)/
 
                 masterDefer.notify.info.good 'unchanged', repo.path 
