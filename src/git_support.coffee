@@ -147,6 +147,18 @@ module.exports = git =
         )
 
 
+    commit: (workDir, origin, branch, logMessage, masterDefer, callback) -> 
+        
+        console.log 'commit()', 
+
+            workDir: workDir
+            branch: branch
+            origin: origin
+            message: logMessage
+
+        callback null, {}
+
+
 
     # showStagedDiffs: (workDir) -> 
 

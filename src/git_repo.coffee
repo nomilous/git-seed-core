@@ -97,7 +97,7 @@ class GitRepo
     # Calls back with repo statii
     #
 
-    @status: (repo, superTask, callback) -> 
+    @status: (repo, args, superTask, callback) -> 
 
         unless Shell.gotDirectory repo.path + '/.git'
 
@@ -138,9 +138,19 @@ class GitRepo
     # Performs clone
     #
 
-    @clone: (repo, superTask, callback) -> 
+    @clone: (repo, args, superTask, callback) -> 
 
         GitSupport.clone repo.path, repo.origin, repo.branch, superTask, callback
+
+    #
+    # `GitRepo.commit()`
+    # 
+    # Commits 
+    #
+
+    @commit: (repo, args, logMessage, superTask, callback) -> 
+
+        GitSupport.commit repo.path, repo.origin, repo.branch, message, superTask, callback
 
 
     #
@@ -150,7 +160,7 @@ class GitRepo
     # Package implementations should override this
     #
 
-    @install: (repo, superTask, callback) -> 
+    @install: (repo, args, superTask, callback) -> 
 
         superTask.notify.info.normal 'no package manager', ''
         callback null, {}
