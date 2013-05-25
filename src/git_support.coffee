@@ -78,60 +78,75 @@ module.exports = git =
         workDir + '/.git'
 
 
-    clone: (workDir, origin, branch, masterDefer, callback) -> 
+
+    checkoutArgs: (workDir, branch) -> 
+
+        [
+            "--git-dir=#{workDir}/.git"
+            "--work-tree=#{workDir}"
+            'checkout'
+            branch.replace 'refs/heads/', ''
+        ]
+
+
+    needClone: (workDir, callback) -> 
 
         gitDir = git.gitDir workDir
 
-        tasks  = sequence [
+        if Shell.gotDirectory gitDir
 
-            -> 
-                nodefn.call mkdirp, workDir
+            #
+            # calls back with error..... [1]
+            # 
 
-            -> 
+            callback 'already cloned'
 
-                #
-                # bit messy here, needs to exit the sequence 
-                # if the .git folder is already present for
-                # this repo (already cloned)
-                # 
-                # but without terminating the super-sequence
-                # because the next repo may still need cloning
-                #
+        else callback null 
 
-                dfer = defer()
 
-                if Shell.gotDirectory gitDir
-                    dfer.reject 'already cloned'
+    clone: (workDir, origin, branch, masterDefer, callback) -> 
 
-                else 
-                    dfer.resolve()
+        #
+        # [1] TODO: use pipeline instead, or something that
+        #           can stop the sequence more gracefully
+        #
 
-                dfer.promise
 
-            -> 
-                nodefn.call Shell.spawn, 'git', ['clone', origin, workDir], masterDefer
-                
+        cloneArgs    = ['clone', origin, workDir]
 
-        ]
+        sequence( [
 
-        tasks.then(
+            -> nodefn.call mkdirp, workDir
+            -> nodefn.call git.needClone, workDir  # [1]
+            -> nodefn.call Shell.spawn, 'git', ['clone', origin, workDir], masterDefer
+            -> nodefn.call Shell.spawn, 'git', git.checkoutArgs(workDir, branch), masterDefer
+
+            #
+            # TODO: it could become necessary to step over the 'already cloned' but 
+            #       still need to do the checkout
+            #
+
+
+        ] ).then(
 
             (result) -> callback null, result
             (error)  -> 
 
-                unless error == 'already cloned'
-                    callback error
-                    return
+                #
+                # [1]..... in order to terminate the sequence
+                #          ahead of making the clone
+                # 
+                #          but without erroring into the super
+                #          sequence that is cloning the list
+                #          of repos from the .git-seed file.
+                #
+
+                return callback error unless error == 'already cloned'
 
                 masterDefer.notify.info.good 'already cloned', workDir
                 callback null, {}
 
-
-
         )
-
-        
-
 
 
 
