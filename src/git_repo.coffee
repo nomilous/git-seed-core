@@ -20,7 +20,7 @@ class GitRepo
     # Calls back with array of initialized GitRepo(s)
     #
 
-    @search: (rootRepoDir, Plugin, masterDefer, callback) -> 
+    @search: (rootRepoDir, Plugin, superTask, callback) -> 
 
         find    = Findit.find rootRepoDir
         uniq    = {}
@@ -34,7 +34,7 @@ class GitRepo
                 return unless typeof uniq[match[1]] == 'undefined'
                 uniq[match[1]] = 1
 
-                masterDefer.notify.info.good 'found repo', "#{match[1]}/.git"
+                superTask.notify.info.good 'found repo', "#{match[1]}/.git"
                 found.push match[1]
         
 
@@ -45,7 +45,7 @@ class GitRepo
             tasks = sequence( for path in found 
                 
                 paths.unshift path
-                -> nodefn.call Plugin.Package.init, paths.pop(), seq++, manager, masterDefer
+                -> nodefn.call Plugin.Package.init, paths.pop(), seq++, manager, superTask
 
             )
 
@@ -63,7 +63,7 @@ class GitRepo
     # Calls back with an initialized GitRepo
     #
 
-    @init: (repoDir, seq, manager, masterDefer, callback) -> 
+    @init: (repoDir, seq, manager, superTask, callback) -> 
 
         tasks = sequence [
 
@@ -97,11 +97,11 @@ class GitRepo
     # Calls back with repo statii
     #
 
-    @status: (repo, masterDefer, callback) -> 
+    @status: (repo, superTask, callback) -> 
 
         unless Shell.gotDirectory repo.path + '/.git'
 
-            masterDefer.notify.info.bad 'missing repo', repo.path
+            superTask.notify.info.bad 'missing repo', repo.path
             callback null, {}
             return
 
@@ -110,7 +110,7 @@ class GitRepo
 
             if status.stdout.match /branch is ahead/
 
-                masterDefer.notify.info.bad 'unpushed', 
+                superTask.notify.info.bad 'unpushed', 
                     description: repo.path
                     detail: status.stdout
                 callback null, status  
@@ -120,11 +120,11 @@ class GitRepo
 
             if status.stdout.match /nothing to commit \(working directory clean\)/
 
-                masterDefer.notify.info.good 'unchanged', repo.path 
+                superTask.notify.info.good 'unchanged', repo.path 
                 callback null, {}
                 return
 
-            masterDefer.notify.info.good 'changed',
+            superTask.notify.info.good 'changed',
                 description: repo.path
                 detail: status.stdout
 
@@ -138,9 +138,22 @@ class GitRepo
     # Performs clone
     #
 
-    @clone: (repo, masterDefer, callback) -> 
+    @clone: (repo, superTask, callback) -> 
 
-        GitSupport.clone repo.path, repo.origin, repo.branch, masterDefer, callback
+        GitSupport.clone repo.path, repo.origin, repo.branch, superTask, callback
+
+
+    #
+    # `GitRepo.install()`
+    # 
+    # Performs package manager install
+    # Package implementations should override this
+    #
+
+    @install: (repo, superTask, callback) -> 
+
+        superTask.notify.info.normal 'no package manager', ''
+        callback null, {}
 
 
 
