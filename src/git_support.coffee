@@ -7,8 +7,6 @@ defer     = require('when').defer
 mkdirp    = require('fs-extra').mkdirp
 
 
-
-
 module.exports = git =
 
 
@@ -162,95 +160,6 @@ module.exports = git =
 
     #     0 != git.showStagedDiffs( workDir ).length
 
-
-    # clone: (workDir, origin, branch, masterDefer, finalCallback) -> 
-
-
-    #     sequence( [
-
-    #         Shell.promiseDirectory
-    #         ->
-
-    #     ], workdir ).then(
-
-    #         -> console.log 'RESULT:', arguments
-    #         -> console.log 'ERROR:', arguments
-
-    #     ) 
-
-    #     # waterfall [
-
-    #     #     #
-    #     #     # calls in serial, proceeds no further on fail
-    #     #     #
-
-    #     #     (callback) -> 
-
-    #     #         if Shell.gotDirectory workDir
-
-    #     #             callback null
-
-    #     #         else
-
-    #     #             Shell.makeDirectory workDir, masterDefer, (err) -> 
-
-    #     #                 callback err
-
-    #     #     (callback) -> 
-
-    #     #         if Shell.gotDirectory "#{workDir}/.git"
-
-    #     #             masterDefer.notify 
-
-    #     #                 cli: 
-    #     #                     context: 'good'
-    #     #                     event:   'skip'
-    #     #                     detail:  'already cloned ' + workDir
-
-    #     #             callback null
-
-    #     #         else
-
-    #     #             Shell.spawn 'git', ['clone', origin, workDir], masterDefer, (err) -> 
-
-    #     #                 callback err
-
-
-    #     #     (callback) -> 
-
-    #     #         git.getHeadRef workDir, (err, head) -> 
-
-    #     #             if err then return callback err
-
-    #     #             #
-    #     #             # already checked out?
-    #     #             # 
-
-    #     #             if head == branch then return callback null
-
-    #     #             Shell.spawn 'git', [
-
-    #     #                 "--git-dir=#{workDir}/.git" # concerned about spaces in names
-    #     #                 "--work-tree=#{workDir}"
-    #     #                 'checkout'
-    #     #                 branch.replace 'refs/heads/', ''
-
-    #     #             ], masterDefer, (err, result) -> 
-
-    #     #                 if err then return callback err
-
-    #     #                 detail = result.stdout + result.stderr
-
-    #     #                 masterDefer.notify 
-
-    #     #                     cli: 
-
-    #     #                         event:   'output'
-    #     #                         detail:  detail
-
-    #     #                 callback null
-
-    #     # ], finalCallback
 
 
     # commit: (workDir, branch, message, finalCallback) ->
