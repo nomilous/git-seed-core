@@ -20,7 +20,7 @@ class GitRepo
     # Calls back with array of initialized GitRepo(s)
     #
 
-    @search: (rootRepoDir, Plugin, superTask, callback) -> 
+    @search: (superTask, rootRepoDir, Plugin, callback) -> 
 
         find    = Findit.find rootRepoDir
         uniq    = {}
@@ -45,7 +45,7 @@ class GitRepo
             tasks = sequence( for path in found 
                 
                 paths.unshift path
-                -> nodefn.call Plugin.Package.init, paths.pop(), seq++, manager, superTask
+                -> nodefn.call Plugin.Package.init, superTask, paths.pop(), seq++, manager
 
             )
 
@@ -63,7 +63,7 @@ class GitRepo
     # Calls back with an initialized GitRepo
     #
 
-    @init: (workDir, seq, manager, superTask, callback) -> 
+    @init: (superTask, workDir, seq, manager, callback) -> 
 
         input = 
 
@@ -94,9 +94,9 @@ class GitRepo
     # Calls back with repo statii
     #
 
-    @status: (repo, args, superTask, callback) -> 
+    @status: (superTask, repo, args, callback) -> 
 
-        GitSupport.status repo, args, superTask, callback
+        GitSupport.status superTask, repo, args, callback
 
 
     #
@@ -105,9 +105,9 @@ class GitRepo
     # Performs clone
     #
 
-    @clone: (repo, args, superTask, callback) -> 
+    @clone: (superTask, repo, args, callback) -> 
 
-        GitSupport.clone repo.path, repo.origin, repo.branch, superTask, callback
+        GitSupport.clone superTask, repo.path, repo.origin, repo.branch, callback
 
     #
     # `GitRepo.commit()`
@@ -115,9 +115,9 @@ class GitRepo
     # Commits 
     #
 
-    @commit: (repo, args, superTask, callback) -> 
+    @commit: (superTask, repo, args, callback) -> 
 
-        GitSupport.commit repo.path, repo.origin, repo.branch, args.message, superTask, callback
+        GitSupport.commit superTask, repo.path, repo.origin, repo.branch, args.message, callback
 
     #
     # `GitRepo.pull()`
@@ -125,9 +125,9 @@ class GitRepo
     # Pulls 
     #
 
-    @pull: (repo, args, superTask, callback) -> 
+    @pull: (superTask, repo, args, callback) -> 
 
-        GitSupport.pull repo.path, repo.origin, repo.branch, superTask, callback
+        GitSupport.pull superTask, repo.path, repo.origin, repo.branch, callback
 
 
     #
@@ -137,7 +137,7 @@ class GitRepo
     # Package implementations should override this
     #
 
-    @install: (repo, args, superTask, callback) -> 
+    @install: (superTask, repo, args, callback) -> 
 
         superTask.notify.info.normal 'no package manager', ''
         callback null, {}

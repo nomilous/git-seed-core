@@ -21,14 +21,14 @@ module.exports = git =
         
         try
 
-            Shell.spawn 'git', [
+            Shell.spawn null, 'git', [
 
                 "--git-dir=#{gitDir}"
                 'config'
                 '--get'
                 configItem
 
-            ], null, (error, result) -> 
+            ], (error, result) -> 
 
                 if error then return callback error
                 repo[configItem] = result.stdout.trim()
@@ -88,13 +88,13 @@ module.exports = git =
 
         gitDir = "#{repo.workDir}/.git"
 
-        Shell.spawn 'git', [
+        Shell.spawn null, 'git', [
 
             "--git-dir=#{gitDir}"
             "--work-tree=#{repo.workDir}"
             'status'
 
-        ], null, (error, status) -> 
+        ], (error, status) -> 
 
             if error then return callback error
 
@@ -201,14 +201,14 @@ module.exports = git =
 
     getStagedChanges: (workDir, callback) -> 
 
-        Shell.spawn 'git', [
+        Shell.spawn null, 'git', [
 
             "--git-dir=#{workDir}/.git"
             "--work-tree=#{workDir}"
             'diff'
             '--cached'
 
-        ], null, callback
+        ], callback
 
 
     noStagedChanges: (workDir, callback) -> 
@@ -219,7 +219,7 @@ module.exports = git =
             callback null
 
 
-    status: (repo, args, superTask, callback) -> 
+    status: (superTask, repo, args, callback) -> 
 
         console.log 'TODO: add superTask as arg1 TO ALL'
 
@@ -257,7 +257,7 @@ module.exports = git =
         )
 
 
-    clone: (workDir, origin, branch, superTask, callback) -> 
+    clone: (superTask, workDir, origin, branch, callback) -> 
 
         #
         # [1] TODO: use pipeline instead, or something that
@@ -273,8 +273,8 @@ module.exports = git =
 
             -> nodefn.call mkdirp, workDir
             -> nodefn.call git.needClone, workDir  # [1]
-            -> nodefn.call Shell.spawn, 'git', ['clone', origin, workDir], superTask
-            -> nodefn.call Shell.spawn, 'git', git.checkoutArgs(workDir, branch), superTask
+            -> nodefn.call Shell.spawn, superTask, 'git', ['clone', origin, workDir]
+            -> nodefn.call Shell.spawn, superTask, 'git', git.checkoutArgs(workDir, branch)
 
             #
             # TODO: it could become necessary to step over the 'already cloned' but 
@@ -315,14 +315,14 @@ module.exports = git =
         ]
 
 
-    commit: (workDir, origin, branch, logMessage, superTask, callback) -> 
+    commit: (superTask, workDir, origin, branch, logMessage, callback) -> 
 
         sequence( [
 
             -> nodefn.call git.missingRepo, workDir
             -> nodefn.call git.wrongBranch, workDir, branch
             -> nodefn.call git.noStagedChanges, workDir
-            -> nodefn.call Shell.spawn, 'git', git.commitArgs(workDir, logMessage), superTask
+            -> nodefn.call Shell.spawn, superTask, 'git', git.commitArgs(workDir, logMessage)
 
         ] ).then(
 
@@ -362,13 +362,13 @@ module.exports = git =
 
         )
 
-    pull: (workDir, origin, branch, superTask, callback) -> 
+    pull: (superTask, workDir, origin, branch, callback) -> 
 
         sequence( [
 
             -> nodefn.call git.missingRepo, workDir
             -> nodefn.call git.wrongBranch, workDir, branch
-            -> nodefn.call Shell.spawnAt, directory: workDir, 'git', ['pull', origin, branch], superTask
+            -> nodefn.call Shell.spawnAt, superTask, directory: workDir, 'git', ['pull', origin, branch]
 
         ] ).then(
 

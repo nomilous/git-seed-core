@@ -15,7 +15,7 @@ module.exports = shell =
             return false
 
 
-    spawn: (command, opts, superTask, callback) -> 
+    spawn: (superTask, command, opts, callback) -> 
 
         #
         # not for long running or very talkative processes
@@ -60,7 +60,7 @@ module.exports = shell =
                     stderr: stderr
 
 
-    spawnAt: (at, command, opts, superTask, callback) -> 
+    spawnAt: (superTask, at, command, opts, callback) -> 
 
         unless at.directory
 
