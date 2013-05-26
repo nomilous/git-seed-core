@@ -1,4 +1,4 @@
-### Most of the function in this codebase take a superTask as thier first argument. 
+### Most of the functions in this codebase take a superTask as thier first argument. 
 
 What is a superTask
 -------------------
