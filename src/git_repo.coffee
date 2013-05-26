@@ -96,7 +96,7 @@ class GitRepo
 
     @status: (repo, args, superTask, callback) -> 
 
-        GitSupport.status repo.path, repo.origin, repo.branch, superTask, callback
+        GitSupport.status repo, args, superTask, callback
 
 
     #

@@ -1,13 +1,15 @@
 Shell     = require './shell'
 fs        = require 'fs' 
 sequence  = require 'when/sequence'
+pipeline  = require 'when/pipeline'
 nodefn    = require 'when/node/function'
 defer     = require('when').defer
 mkdirp    = require('fs-extra').mkdirp
 
 
-module.exports = git =
+console.log "TODO: explain pipeline and superTask"
 
+module.exports = git =
 
     getConfigItem: (repo, configItem, callback) -> 
 
@@ -74,23 +76,60 @@ module.exports = git =
             callback null, repo
 
 
-    getStatus: (workDir, callback) -> 
+    getStatus: (repo, callback) -> 
 
-        gitDir = git.gitDir workDir
+        repo.status ||= {}
+        if repo.status['missing repo'] then return callback null, repo
+        if repo.status['wrong branch'] then return callback null, repo
+
+        #
+        # TODO: callback error when missing repo.workDir
+        #
+
+        gitDir = "#{repo.workDir}/.git"
 
         Shell.spawn 'git', [
 
             "--git-dir=#{gitDir}"
-            "--work-tree=#{workDir}"
+            "--work-tree=#{repo.workDir}"
             'status'
 
-        ], null, callback
+        ], null, (error, status) -> 
+
+            if error then return callback error
+
+            if status.stdout.match /branch is ahead/
+
+                #
+                # `git status` reports eratically:
+                # 
+                # "Your branch is ahead of \'origin/develop\' by N commits"
+                # 
+                # - sometimes it is ahead and does not say so
+                # - sometimes it is not ahead but says it is
+                #
+
+                repo.status['unpushed changes'] = true
+                repo.status.latest = 'unpushed changes'
+                repo.status.tenor  = 'bad'
+                repo.status.detail = status.stdout
+                return callback null, repo
 
 
+            if status.stdout.match /nothing to commit \(working directory clean\)/
 
-    # gitDir: (workDir) -> 
+                repo.status['no changes'] = true
+                repo.status.latest = 'no changes'
+                repo.status.tenor  = 'normal'
+                repo.status.detail = status.stdout
+                return callback null, repo
 
-    #     workDir + '/.git'
+
+            repo.status['has changes'] = true
+            repo.status.latest = 'has changes'
+            repo.status.tenor  = 'good'
+            repo.status.detail = status.stdout
+            callback null, repo
 
 
     checkoutArgs: (workDir, branch) -> 
@@ -119,23 +158,45 @@ module.exports = git =
         callback null, pre_checks: missing_repo: true
 
 
-    missingRepo: (workDir, callback) -> 
+    missingRepo: (repo, callback) -> 
 
-        gitDir = git.gitDir workDir
+        #
+        # TODO: callback error when missing repo.workDir
+        #
 
-        unless Shell.gotDirectory gitDir
-            callback 'missing repo'
-            return
+        gitDir  = "#{repo.workDir}/.git"
+        missing = false
+        missing = true unless Shell.gotDirectory gitDir
 
-        callback null, pre_checks: missing_repo: false
+        repo.status ||= {} 
+        repo.status['missing repo'] = missing
+        if missing 
+            repo.status.latest = 'missing repo'
+            repo.status.tenor  = 'bad'
+
+        callback null, repo
 
 
-    wrongBranch: (workDir, branch, callback) -> 
+    wrongBranch: (repo, callback) -> 
 
-        git.getHeadRef workDir, (error, headRef) ->
+        #
+        # TODO: callback error when missing repo.workDir
+        #
 
-            return callback 'wrong branch' if headRef != branch
-            callback null, pre_checks: wrong_branch: false
+        repo.status ||= {}
+        if repo.status['missing repo'] then return callback null, repo
+
+        git.getHEAD { workDir: repo.workDir }, (error, actualRepo) ->
+
+            wrong = repo.HEAD != actualRepo.HEAD
+            repo.status ||= {} 
+            repo.status['wrong branch'] = wrong
+            if wrong 
+                repo.status.latest = 'wrong branch'
+                repo.status.tenor  = 'bad'
+                repo.status.detail = "\nexpected #{repo.HEAD}\nfound #{actualRepo.HEAD}\n"
+
+            callback null, repo
 
 
     getStagedChanges: (workDir, callback) -> 
@@ -158,69 +219,40 @@ module.exports = git =
             callback null
 
 
-    status: (workDir, origin, branch, superTask, callback) -> 
+    status: (repo, args, superTask, callback) -> 
 
-        sequence( [
+        console.log 'TODO: add superTask as arg1 TO ALL'
 
-            -> nodefn.call git.missingRepo, workDir
-            -> nodefn.call git.wrongBranch, workDir, branch
-            -> nodefn.call git.getStatus,   workDir
+        input = 
+
+            workDir: repo.workDir
+            HEAD:    repo.HEAD
+
+        pipeline( [
+
+            (        ) -> nodefn.call git.missingRepo, input
+            (assemble) -> nodefn.call git.wrongBranch, assemble
+            (assemble) -> nodefn.call git.getStatus,   assemble
 
         ] ).then(
 
-            (resultArray) -> 
+            (assembled) -> 
 
-                console.log 'STATUS RESULTS',  resultArray
+                latest = assembled.status.latest
+                tenor  = assembled.status.tenor || 'normal'
 
-                status = resultArray[2]
+                if latest == 'no changes'
+                    superTask.notify.info[tenor] latest, 
+                        description: assembled.workDir
 
-                if status.stdout.match /branch is ahead/
+                else 
+                    superTask.notify.info[tenor] latest, 
+                        description: assembled.workDir
+                        detail: assembled.status.detail
 
-                    #
-                    # `git status` reports eratically:
-                    # 
-                    # "Your branch is ahead of \'origin/develop\' by N commits"
-                    # 
-                    # - sometimes it is ahead and does not say so
-                    # - sometimes it is not ahead but says it is
-                    #
+                callback null, assembled
 
-                    superTask.notify.info.bad 'unpushed', 
-                        description: workDir
-                        detail: status.stdout
-                    return callback null, resultArray
-
-                if status.stdout.match /nothing to commit \(working directory clean\)/
-
-                    superTask.notify.info.normal 'unchanged', workDir
-                    return callback null, resultArray
-
-                superTask.notify.info.good 'changed',
-                    description: workDir
-                    detail: status.stdout
-
-                callback null, resultArray
-
-            (error)  -> 
-
-                #
-                # #duplication
-                #
-
-                if error == 'missing repo'
-
-                    superTask.notify.info.bad 'missing repo', workDir
-                    callback null, {}
-                    return
-
-                if error == 'wrong branch'
-
-                    superTask.notify.info.bad 'wrong branch', "#{workDir} - expects #{branch}"
-                    callback null, {}
-                    return
-
-                callback error
-
+            (error)  -> callback error
 
         )
 
