@@ -245,18 +245,6 @@ module.exports = git =
         )
 
 
-
-    #     #         Shell.spawn 'git', [
-
-    #     #             "--git-dir=#{workDir}/.git" # concerned about spaces in names
-    #     #             "--work-tree=#{workDir}"
-    #     #             'commit'
-    #     #             '-m'
-    #     #             message
-
-    #     #         ], callback
-
-
     commitArgs: (workDir, logMessage) -> 
 
         [
@@ -314,73 +302,6 @@ module.exports = git =
                 callback error
 
         )
-
-
-
-    # commit: (workDir, branch, message, finalCallback) ->
-
-
-    #     # waterfall [
-
-    #     #     (callback) -> 
-
-    #     #         skip = false
-
-    #     #         if Shell.gotDirectory workDir
-
-    #     #             callback null, skip
-
-    #     #         else
-
-    #     #             console.log '( SKIPPED )'.red, 'missing repo', workDir.bold
-    #     #             callback null, skip = true
-
-    #     #     (skip, callback) -> 
-
-    #     #         if skip
-
-    #     #             callback null, skip
-    #     #             return
-
-    #     #         currentBranch = git.showBranch( workDir )
-
-    #     #         if currentBranch == branch
-
-    #     #             callback null, skip
-
-    #     #         else 
-
-    #     #             console.log '( SKIPPED )'.red, workDir.bold, 'SHOULD BE ON BRANCH', branch.red, 'NOT', currentBranch.red
-    #     #             callback null, skip = true
-
-
-
-    #     #     (skip, callback) -> 
-
-    #     #         if skip
-
-    #     #             callback null, skip
-    #     #             return
-
-    #     #         unless git.hasStagedChanges workDir
-
-    #     #             console.log '(skip)'.green, 'no staged changes in', workDir
-    #     #             callback null
-    #     #             return
-
-    #     #         Shell.spawn 'git', [
-
-    #     #             "--git-dir=#{workDir}/.git" # concerned about spaces in names
-    #     #             "--work-tree=#{workDir}"
-    #     #             'commit'
-    #     #             '-m'
-    #     #             message
-
-    #     #         ], callback
-
-
-
-    #     # ], finalCallback
 
 
     # pull: (workDir, origin, branch, ref, finalCallback) -> 
