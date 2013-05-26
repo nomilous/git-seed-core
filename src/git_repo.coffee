@@ -98,6 +98,8 @@ class GitRepo
 
     @status: (repo, args, superTask, callback) -> 
 
+        console.log 'BUG: status run terminates abnormally on staged but not commited repos'
+
         GitSupport.status repo.path, repo.origin, repo.branch, superTask, callback
 
 
