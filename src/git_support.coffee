@@ -121,6 +121,26 @@ module.exports = git =
             callback null
 
 
+    getStagedChanges: (workDir, callback) -> 
+
+        Shell.spawn 'git', [
+
+            "--git-dir=#{workDir}/.git"
+            "--work-tree=#{workDir}"
+            'diff'
+            '--cached'
+
+        ], null, callback
+
+
+    # showStagedDiffs: (workDir) -> 
+
+    #     return Shell.execSync(
+
+    #             "git --git-dir=#{workDir}/.git --work-tree=#{workDir} diff --cached", false
+
+    #     )
+
 
     status: (workDir, origin, branch, superTask, callback) -> 
 
@@ -146,7 +166,7 @@ module.exports = git =
 
                 if status.stdout.match /nothing to commit \(working directory clean\)/
 
-                    superTask.notify.info.good 'unchanged', workDir
+                    superTask.notify.info.normal 'unchanged', workDir
                     return callback null, status
 
                 superTask.notify.info.good 'changed',
@@ -160,6 +180,8 @@ module.exports = git =
                 #
                 # #duplication
                 #
+
+                console.log error
 
                 if error == 'missing repo'
 
@@ -230,12 +252,13 @@ module.exports = git =
 
             -> nodefn.call git.missingRepo, workDir
             -> nodefn.call git.wrongBranch, workDir, branch
+            -> nodefn.call git.getStagedChanges, workDir
 
         ] ).then(
 
             (result) -> 
 
-                superTask.notify.info.normal 'committed', workDir
+                superTask.notify.info.normal 'committed', result
                 callback null, result
 
             (error)  -> 
