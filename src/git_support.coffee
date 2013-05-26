@@ -149,7 +149,6 @@ module.exports = git =
             -> nodefn.call git.wrongBranch, workDir, branch
             -> nodefn.call git.getStatus,   workDir
 
-
         ] ).then(
 
             (result) -> 
@@ -158,9 +157,18 @@ module.exports = git =
 
                 if status.stdout.match /branch is ahead/
 
+                    #
+                    # `git status` reports eratically:
+                    # 
+                    # "Your branch is ahead of \'origin/develop\' by N commits"
+                    # 
+                    # - sometimes it is ahead and does not say so
+                    # - sometimes it is not ahead but says it is
+                    #
+
                     superTask.notify.info.bad 'unpushed', 
-                        description: repo.path
-                        detail: result.stdout
+                        description: workDir
+                        detail: status.stdout
                     return callback null, status
 
                 if status.stdout.match /nothing to commit \(working directory clean\)/
@@ -179,8 +187,6 @@ module.exports = git =
                 #
                 # #duplication
                 #
-
-                console.log error
 
                 if error == 'missing repo'
 
