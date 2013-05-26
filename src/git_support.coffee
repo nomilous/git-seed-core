@@ -75,7 +75,6 @@ module.exports = git =
         workDir + '/.git'
 
 
-
     checkoutArgs: (workDir, branch) -> 
 
         [
@@ -99,7 +98,7 @@ module.exports = git =
             callback 'already cloned'
             return
 
-        callback null
+        callback null, pre_checks: missing_repo: true
 
 
     missingRepo: (workDir, callback) -> 
@@ -110,7 +109,7 @@ module.exports = git =
             callback 'missing repo'
             return
 
-        callback null
+        callback null, pre_checks: missing_repo: false
 
 
     wrongBranch: (workDir, branch, callback) -> 
@@ -118,7 +117,7 @@ module.exports = git =
         git.getHeadRef workDir, (error, headRef) ->
 
             return callback 'wrong branch' if headRef != branch
-            callback null
+            callback null, pre_checks: wrong_branch: false
 
 
     getStagedChanges: (workDir, callback) -> 
@@ -152,6 +151,8 @@ module.exports = git =
         ] ).then(
 
             (resultArray) -> 
+
+                console.log 'STATUS RESULTS',  resultArray
 
                 status = resultArray[2]
 
