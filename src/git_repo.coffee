@@ -65,43 +65,25 @@ class GitRepo
 
     @init: (workDir, seq, manager, superTask, callback) -> 
 
-        console.log 'INIT'
+        input = 
 
-        repo = 
-
-            root:    seq == 0
-            workDir: workDir
-            manager: manager
+            root:           seq == 0
+            workDir:        workDir
+            packageManager: manager
 
 
         tasks = pipeline [
 
-            (    ) -> nodefn.call GitSupport.getConfigItem, repo, 'remote.origin.url'
-            (repo) -> nodefn.call GitSupport.getHead, repo
-            # -> nodefn.call GitSupport.getHeadVersion, repoDir
+            (    ) -> nodefn.call GitSupport.getConfigItem, input, 'remote.origin.url'
+            (repo) -> nodefn.call GitSupport.getHEAD, repo
+            (repo) -> nodefn.call GitSupport.getVersion, repo, repo.HEAD
 
         ] 
 
         tasks.then(
 
-            success = (repoo) -> 
-
-                console.log 'REPO', repoo
-
-                # callback null, 
-
-                #     root:    seq == 0
-                #     path:    repoDir
-                #     manager: manager
-                #     origin:  results[0]
-                #     branch:  results[1]
-                #     ref:     results[2]
-                
-            failed  = (error)  -> 
-
-                console.log 'ERROR', error
-
-                callback error
+            success = (repoo) -> callback null, repoo
+            failed  = (error)  -> callback error
 
         )
 

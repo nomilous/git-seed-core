@@ -38,7 +38,11 @@ module.exports = git =
 
 
 
-    getHead: (repo, callback) -> 
+    getHEAD: (repo, callback) -> 
+
+        #
+        # TODO: callback error when missing repo.workDir
+        #
 
         gitDir = "#{repo.workDir}/.git"
 
@@ -54,17 +58,20 @@ module.exports = git =
 
 
 
-    getHeadVersion: (repo, callback) -> 
+    getVersion: (repo, ref, callback) -> 
 
-        gitDir = git.gitDir workDir
-        git.getHeadRef workDir, (error, head) -> 
+        #
+        # TODO: callback error when missing repo.workDir
+        #
+
+        gitDir = "#{repo.workDir}/.git"
+            
+        fs.readFile "#{gitDir}/#{ref}", (error, data) ->
 
             if error then return callback error
-            fs.readFile "#{gitDir}/#{head}", (error, data) ->
 
-                if error then return callback error
-                callback error, data.toString().trim()
-
+            repo.version = data.toString().trim()
+            callback null, repo
 
 
     getStatus: (workDir, callback) -> 
