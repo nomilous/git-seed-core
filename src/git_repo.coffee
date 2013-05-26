@@ -2,6 +2,7 @@ GitSupport = require './git_support'
 Shell      = require './shell'
 Findit     = require 'findit'
 sequence   = require 'when/sequence'
+pipeline   = require 'when/pipeline'
 nodefn     = require 'when/node/function'
 
 class GitRepo
@@ -33,7 +34,7 @@ class GitRepo
                 return unless typeof uniq[match[1]] == 'undefined'
                 uniq[match[1]] = 1
 
-                superTask.notify.info.good 'found repo', "#{match[1]}/.git"
+                superTask.notify.info.normal 'found repo', "#{match[1]}/.git"
                 found.push match[1]
         
 
@@ -62,30 +63,45 @@ class GitRepo
     # Calls back with an initialized GitRepo
     #
 
-    @init: (repoDir, seq, manager, superTask, callback) -> 
+    @init: (workDir, seq, manager, superTask, callback) -> 
 
-        tasks = sequence [
+        console.log 'INIT'
 
-            -> nodefn.call GitSupport.getOrigin, repoDir
-            -> nodefn.call GitSupport.getHeadRef, repoDir
-            -> nodefn.call GitSupport.getHeadVersion, repoDir
+        repo = 
+
+            root:    seq == 0
+            workDir: workDir
+            manager: manager
+
+
+        tasks = pipeline [
+
+            (    ) -> nodefn.call GitSupport.getConfigItem, repo, 'remote.origin.url'
+            (repo) -> nodefn.call GitSupport.getHead, repo
+            # -> nodefn.call GitSupport.getHeadVersion, repoDir
 
         ] 
 
         tasks.then(
 
-            success = (results) -> 
+            success = (repoo) -> 
 
-                callback null, 
+                console.log 'REPO', repoo
 
-                    root:    seq == 0
-                    path:    repoDir
-                    manager: manager
-                    origin:  results[0]
-                    branch:  results[1]
-                    ref:     results[2]
+                # callback null, 
+
+                #     root:    seq == 0
+                #     path:    repoDir
+                #     manager: manager
+                #     origin:  results[0]
+                #     branch:  results[1]
+                #     ref:     results[2]
                 
-            failed  = (error)  -> callback error
+            failed  = (error)  -> 
+
+                console.log 'ERROR', error
+
+                callback error
 
         )
 

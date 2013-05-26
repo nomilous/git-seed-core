@@ -9,9 +9,13 @@ mkdirp    = require('fs-extra').mkdirp
 module.exports = git =
 
 
-    getOrigin: (workDir, callback) -> 
+    getConfigItem: (repo, configItem, callback) -> 
 
-        gitDir = git.gitDir workDir
+        #
+        # TODO: callback error when missing repo.workDir
+        #
+
+        gitDir = "#{repo.workDir}/.git"
         
         try
 
@@ -20,12 +24,13 @@ module.exports = git =
                 "--git-dir=#{gitDir}"
                 'config'
                 '--get'
-                'remote.origin.url'
+                configItem
 
             ], null, (error, result) -> 
 
                 if error then return callback error
-                callback null, result.stdout.trim()
+                repo[configItem] = result.stdout.trim()
+                callback null, repo
 
         catch error
 
@@ -33,17 +38,23 @@ module.exports = git =
 
 
 
-    getHeadRef: (workDir, callback) -> 
+    getHead: (repo, callback) -> 
 
-        gitDir = git.gitDir workDir
+        gitDir = "#{repo.workDir}/.git"
+
         fs.readFile "#{gitDir}/HEAD", (error, data) ->
 
             if error then return callback error
-            callback null, data.toString().match(/ref: (.*)\n$/)[1]
+            try
+                repo.HEAD = data.toString().match(/ref: (.*)\n$/)[1]
+            catch error
+                return callback error
+
+            callback null, repo
 
 
 
-    getHeadVersion: (workDir, callback) -> 
+    getHeadVersion: (repo, callback) -> 
 
         gitDir = git.gitDir workDir
         git.getHeadRef workDir, (error, head) -> 
@@ -70,9 +81,9 @@ module.exports = git =
 
 
 
-    gitDir: (workDir) -> 
+    # gitDir: (workDir) -> 
 
-        workDir + '/.git'
+    #     workDir + '/.git'
 
 
     checkoutArgs: (workDir, branch) -> 
