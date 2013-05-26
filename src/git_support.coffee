@@ -151,9 +151,9 @@ module.exports = git =
 
         ] ).then(
 
-            (result) -> 
+            (resultArray) -> 
 
-                status = result[2]
+                status = resultArray[2]
 
                 if status.stdout.match /branch is ahead/
 
@@ -169,18 +169,18 @@ module.exports = git =
                     superTask.notify.info.bad 'unpushed', 
                         description: workDir
                         detail: status.stdout
-                    return callback null, status
+                    return callback null, resultArray
 
                 if status.stdout.match /nothing to commit \(working directory clean\)/
 
                     superTask.notify.info.normal 'unchanged', workDir
-                    return callback null, status
+                    return callback null, resultArray
 
                 superTask.notify.info.good 'changed',
                     description: workDir
                     detail: status.stdout
 
-                callback null, status
+                callback null, resultArray
 
             (error)  -> 
 
@@ -216,6 +216,8 @@ module.exports = git =
 
         cloneArgs    = ['clone', origin, workDir]
 
+        console.log 'TODO: report on mkdirp'
+
         sequence( [
 
             -> nodefn.call mkdirp, workDir
@@ -231,7 +233,7 @@ module.exports = git =
 
         ] ).then(
 
-            (result) -> callback null, result
+            (resultArray) -> callback null, resultArray
             (error)  -> 
 
                 #
@@ -273,12 +275,12 @@ module.exports = git =
 
         ] ).then(
 
-            (result) -> 
+            (resultArray) -> 
 
-                commited = result[3]
+                commited = resultArray[3]
 
                 superTask.notify.info.normal 'committed', commited
-                callback null, result
+                callback null, resultArray
 
             (error)  -> 
 
@@ -319,10 +321,12 @@ module.exports = git =
 
         ] ).then(
 
-            (result) -> 
+            (resultArray) -> 
 
-                console.log 'pull result', result
-                callback null, result
+                pulled = resultArray[2]
+
+                console.log 'pull result', pulled
+                callback null, resultArray
 
             (error)  -> 
 
