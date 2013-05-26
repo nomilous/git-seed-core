@@ -303,6 +303,12 @@ module.exports = git =
 
         )
 
+    pull: (workDir, origin, branch, superTask, callback) -> 
+
+        console.log 'pull', workDir, origin, branch
+        callback null, {}
+
+
 
     # pull: (workDir, origin, branch, ref, finalCallback) -> 
 

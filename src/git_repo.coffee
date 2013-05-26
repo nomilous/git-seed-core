@@ -121,6 +121,16 @@ class GitRepo
 
         GitSupport.commit repo.path, repo.origin, repo.branch, args.message, superTask, callback
 
+    #
+    # `GitRepo.pull()`
+    # 
+    # Pulls 
+    #
+
+    @pull: (repo, args, superTask, callback) -> 
+
+        GitSupport.pull repo.path, repo.origin, repo.branch, superTask, callback
+
 
     #
     # `GitRepo.install()`
