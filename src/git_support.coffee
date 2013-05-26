@@ -6,9 +6,6 @@ nodefn    = require 'when/node/function'
 defer     = require('when').defer
 mkdirp    = require('fs-extra').mkdirp
 
-
-console.log "TODO: explain pipeline and superTask"
-
 module.exports = git =
 
     getConfigItem: (repo, configItem, callback) -> 
