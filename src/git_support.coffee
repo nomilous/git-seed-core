@@ -133,13 +133,12 @@ module.exports = git =
         ], null, callback
 
 
-    # showStagedDiffs: (workDir) -> 
+    noStagedChanges: (workDir, callback) -> 
 
-    #     return Shell.execSync(
+        git.getStagedChanges workDir, (error, result) -> 
 
-    #             "git --git-dir=#{workDir}/.git --work-tree=#{workDir} diff --cached", false
-
-    #     )
+            return callback 'nothing staged' if result.stdout == ''
+            callback null
 
 
     status: (workDir, origin, branch, superTask, callback) -> 
@@ -246,19 +245,45 @@ module.exports = git =
         )
 
 
+
+    #     #         Shell.spawn 'git', [
+
+    #     #             "--git-dir=#{workDir}/.git" # concerned about spaces in names
+    #     #             "--work-tree=#{workDir}"
+    #     #             'commit'
+    #     #             '-m'
+    #     #             message
+
+    #     #         ], callback
+
+
+    commitArgs: (workDir, logMessage) -> 
+
+        [
+            "--git-dir=#{workDir}/.git"
+            "--work-tree=#{workDir}"
+            'commit'
+            '-m'
+            logMessage
+        ]
+
+
     commit: (workDir, origin, branch, logMessage, superTask, callback) -> 
 
         sequence( [
 
             -> nodefn.call git.missingRepo, workDir
             -> nodefn.call git.wrongBranch, workDir, branch
-            -> nodefn.call git.getStagedChanges, workDir
+            -> nodefn.call git.noStagedChanges, workDir
+            -> nodefn.call Shell.spawn, 'git', git.commitArgs(workDir, logMessage), superTask
 
         ] ).then(
 
             (result) -> 
 
-                superTask.notify.info.normal 'committed', result
+                commited = result[3]
+
+                superTask.notify.info.normal 'committed', commited
                 callback null, result
 
             (error)  -> 
@@ -279,22 +304,16 @@ module.exports = git =
                     callback null, {}
                     return
 
+                if error == 'nothing staged'
+
+                    superTask.notify.info.normal 'nothing staged', "#{workDir}"
+                    callback null, {}
+                    return
+
+
                 callback error
 
         )
-
-
-    # showStagedDiffs: (workDir) -> 
-
-    #     return Shell.execSync(
-
-    #             "git --git-dir=#{workDir}/.git --work-tree=#{workDir} diff --cached", false
-
-    #     )
-
-    # hasStagedChanges: (workDir) -> 
-
-    #     0 != git.showStagedDiffs( workDir ).length
 
 
 
