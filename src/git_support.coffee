@@ -311,8 +311,40 @@ module.exports = git =
 
     pull: (workDir, origin, branch, superTask, callback) -> 
 
-        console.log 'pull', workDir, origin, branch
-        callback null, {}
+        sequence( [
+
+            -> nodefn.call git.missingRepo, workDir
+            -> nodefn.call git.wrongBranch, workDir, branch
+
+        ] ).then(
+
+            (result) -> 
+
+                console.log 'pull result', result
+                callback null, result
+
+            (error)  -> 
+
+                #
+                # #duplication (parital)
+                #
+
+                if error == 'missing repo'
+
+                    superTask.notify.info.bad 'missing repo', workDir
+                    callback null, {}
+                    return
+
+                if error == 'wrong branch'
+
+                    superTask.notify.info.bad 'wrong branch', "#{workDir} - expects #{branch}"
+                    callback null, {}
+                    return
+
+                callback error
+
+        )
+
 
 
 
