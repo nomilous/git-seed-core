@@ -82,7 +82,7 @@ class GitRepo
 
         tasks.then(
 
-            success = (repoo) -> callback null, repoo
+            success = (repo) -> callback null, repo
             failed  = (error)  -> callback error
 
         )
