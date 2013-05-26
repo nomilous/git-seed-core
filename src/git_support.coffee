@@ -315,6 +315,7 @@ module.exports = git =
 
             -> nodefn.call git.missingRepo, workDir
             -> nodefn.call git.wrongBranch, workDir, branch
+            -> nodefn.call Shell.spawnAt, directory: workDir, 'git', ['pull', origin, branch], superTask
 
         ] ).then(
 
@@ -344,84 +345,5 @@ module.exports = git =
                 callback error
 
         )
-
-
-
-
-    # pull: (workDir, origin, branch, ref, finalCallback) -> 
-
-        
-    #     # waterfall [ 
-            
-    #     #     (callback) -> 
-
-    #     #         skip = false
-
-    #     #         if Shell.gotDirectory workDir
-
-    #     #             callback null, skip
-
-    #     #         else
-
-    #     #             console.log '( SKIPPED )'.red, 'missing repo', workDir.bold
-    #     #             callback null, skip = true
-
-
-    #     #     (skip, callback) -> 
-
-    #     #         if skip
-
-    #     #             callback null, skip
-    #     #             return
-
-    #     #         currentBranch = git.showBranch( workDir )
-
-    #     #         if currentBranch == branch
-
-    #     #             callback null, skip
-
-    #     #         else 
-
-    #     #             console.log '( SKIPPED )'.red, workDir.bold, 'SHOULD BE ON BRANCH', branch.red, 'NOT', currentBranch.red
-                    
-    #     #             #
-    #     #             # error if root repo is on the wrong branch
-    #     #             #
-
-    #     #             if workDir == '.'
-
-    #     #                 callback new Error( 'Root repo on wrong branch!' ), null
-                    
-    #     #             else
-
-    #     #                 callback null, skip = true
-
-
-    #     #     (skip, callback) -> 
-
-    #     #         if skip
-
-    #     #             callback null, skip
-    #     #             return
-
-    #     #         if git.showRef( workDir ) == ref
-
-    #     #             console.log '(skip)'.green, workDir, 'already up-to-date'.green, 'with .git-seed'
-    #     #             callback null
-    #     #             return
-
-    #     #         Shell.spawnAt directory: workDir, 'git', [
-
-    #     #             "pull"
-    #     #             origin
-    #     #             branch
-
-    #     #         ], callback
-
-
-    #     # ], finalCallback
-
-
-
 
 
