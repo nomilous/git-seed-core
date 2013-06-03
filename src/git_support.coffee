@@ -73,7 +73,7 @@ module.exports = git =
             callback null, repo
 
 
-    getStatus: (repo, callback) -> 
+    getStatus: (superTask, repo, callback) -> 
 
         repo.status ||= {}
         if repo.status['missing repo'] then return callback null, repo
@@ -155,7 +155,7 @@ module.exports = git =
         callback null, pre_checks: missing_repo: true
 
 
-    missingRepo: (repo, callback) -> 
+    missingRepo: (superTask, repo, callback) -> 
 
         #
         # TODO: callback error when missing repo.workDir
@@ -174,7 +174,7 @@ module.exports = git =
         callback null, repo
 
 
-    wrongBranch: (repo, callback) -> 
+    wrongBranch: (superTask, repo, callback) -> 
 
         #
         # TODO: callback error when missing repo.workDir
@@ -218,8 +218,6 @@ module.exports = git =
 
     status: (superTask, repo, args, callback) -> 
 
-        console.log 'TODO: add superTask as arg1 TO ALL'
-
         input = 
 
             workDir: repo.workDir
@@ -227,9 +225,9 @@ module.exports = git =
 
         pipeline( [
 
-            (        ) -> nodefn.call git.missingRepo, input
-            (assemble) -> nodefn.call git.wrongBranch, assemble
-            (assemble) -> nodefn.call git.getStatus,   assemble
+            (        ) -> nodefn.call git.missingRepo, superTask, input
+            (assemble) -> nodefn.call git.wrongBranch, superTask, assemble
+            (assemble) -> nodefn.call git.getStatus,   superTask, assemble
 
         ] ).then(
 

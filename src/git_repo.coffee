@@ -5,6 +5,7 @@ sequence   = require 'when/sequence'
 pipeline   = require 'when/pipeline'
 nodefn     = require 'when/node/function'
 
+
 class GitRepo
 
     #
