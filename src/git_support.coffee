@@ -167,13 +167,19 @@ module.exports = git =
 
         unless Shell.gotDirectory gitDir
 
+            #
+            # #HAC  - need a plan for optional stdio
+            #
+            superTask.allow_stdio = true
+
             args = ['clone', repo['remote.origin.url'], repo.workDir]
             return Shell.spawn superTask, 'git', args, callback
 
+        superTask.notify.info.normal 'skip', "already cloned #{repo.workDir}"
         callback null, repo
 
 
-    ensureCheckout: (superTask, repo, callback) -> 
+    ensureHEAD: (superTask, repo, callback) -> 
 
         git.getHEAD superTask, { workDir: repo.workDir }, (error, actualRepo) ->
 
@@ -270,8 +276,8 @@ module.exports = git =
                 tenor  = assembled.status.tenor || 'normal'
 
                 if latest == 'no changes'
-                    superTask.notify.info[tenor] latest, 
-                        description: assembled.workDir
+                    superTask.notify.info[tenor] 'skip', 
+                        description: "no changes #{assembled.workDir}"
 
                 else 
                     superTask.notify.info[tenor] latest, 
@@ -289,9 +295,9 @@ module.exports = git =
 
         pipeline( [
 
-            (        ) -> nodefn.call git.ensureWorkDir,  superTask, repo
-            (assemble) -> nodefn.call git.ensureClone,    superTask, repo
-            (assemble) -> nodefn.call git.ensureCheckout, superTask, repo
+            (        ) -> nodefn.call git.ensureWorkDir, superTask, repo
+            (assemble) -> nodefn.call git.ensureClone,   superTask, repo
+            (assemble) -> nodefn.call git.ensureHEAD,    superTask, repo
 
         ] ).then(
 

@@ -30,21 +30,28 @@ module.exports = shell =
 
         child = spawn command, opts
 
+        if superTask.allow_stdio? and superTask.allow_stdio
+
+            child.stdout.pipe process.stdout
+            child.stderr.pipe process.stderr
+
         stdout = ''
         stderr = ''
 
         child.stdout.on 'data', (data) -> 
             str = data.toString()
             stdout += str
-            try superTask.notify.stdio.good str
+            
 
         child.stderr.on 'data', (data) -> 
             str = data.toString()  
             stderr += str
-            try superTask.notify.stdio.bad str
+            
 
 
         child.on 'close', (code, signal) ->
+
+            superTask.allow_stdio = false
 
             if code > 0 
 
@@ -75,30 +82,36 @@ module.exports = shell =
 
             child = spawn command, opts
 
+            if superTask.allow_stdio? and superTask.allow_stdio
+
+                child.stdout.pipe process.stdout
+                child.stderr.pipe process.stderr
+
             stdout = ''
             stderr = ''
 
             child.stdout.on 'data', (data) -> 
                 str = data.toString()
                 stdout += str
-                if superTask then superTask.notify.stdio.good str
+                
 
             child.stderr.on 'data', (data) -> 
                 str = data.toString()
                 stderr += str
-                if superTask then superTask.notify.stdio.bad str
+                
                 
 
             child.on 'close', (code, signal) ->
 
+                process.chdir originalDir
+                superTask.allow_stdio = false
+
                 if code > 0
 
-                    process.chdir originalDir
                     callback new Error "'#{command} #{opts.join(' ')}'" + ' exited with errorcode: ' + code
 
                 else 
 
-                    process.chdir originalDir
                     callback null, 
                         code: code
                         stdout: stdout
