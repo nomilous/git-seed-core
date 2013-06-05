@@ -18,7 +18,7 @@ module.exports = git =
         
         try
 
-            Shell.spawn null, 'git', [
+            Shell.spawn superTask, 'git', [
 
                 "--git-dir=#{gitDir}"
                 'config'
@@ -85,7 +85,7 @@ module.exports = git =
 
         gitDir = "#{repo.workDir}/.git"
 
-        Shell.spawn null, 'git', [
+        Shell.spawn superTask, 'git', [
 
             "--git-dir=#{gitDir}"
             "--work-tree=#{repo.workDir}"
