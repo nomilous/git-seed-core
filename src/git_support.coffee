@@ -138,21 +138,54 @@ module.exports = git =
             branch.replace 'refs/heads/', ''
         ]
 
+    makeWorkDir: (superTask, repo, callback) -> 
 
-    needClone: (workDir, callback) -> 
+        return callback null, repo if Shell.gotDirectory repo.workDir
 
-        gitDir = git.gitDir workDir
+        mkdirp repo.workDir, (err) -> 
+            if err? 
+                superTask.notify.info.bad 'mkdirp', 
+                    "FAILED to create #{repo.workDir}"
+                return callback err, null
 
-        if Shell.gotDirectory gitDir
+            superTask.notify.info.normal 'mkdirp', repo.workDir
+            callback err, repo
 
-            #
-            # calls back with error..... [1]
-            # 
 
-            callback 'already cloned'
-            return
+    ensureWorkDir: (superTask, repo, callback) -> 
 
-        callback null, pre_checks: missing_repo: true
+        unless Shell.gotDirectory repo.workDir
+
+            return git.makeWorkDir superTask, repo, callback
+
+        callback null, repo
+
+
+    ensureClone: (superTask, repo, callback) -> 
+
+        gitDir = "#{repo.workDir}/.git"
+
+        unless Shell.gotDirectory gitDir
+
+            args = ['clone', repo['remote.origin.url'], repo.workDir]
+            return Shell.spawn superTask, 'git', args, callback
+
+        callback null, repo
+
+
+    ensureCheckout: (superTask, repo, callback) -> 
+
+        git.getHEAD superTask, { workDir: repo.workDir }, (error, actualRepo) ->
+
+            if repo.HEAD != actualRepo.HEAD
+
+                superTask.notify.info.good 'checkout', 
+                    "#{repo.HEAD} in #{repo.workDir}"
+
+                args = git.checkoutArgs(repo.workDir, repo.HEAD)
+                return Shell.spawn superTask, 'git', args, callback
+
+            callback null, repo
 
 
     missingRepo: (superTask, repo, callback) -> 
@@ -254,60 +287,18 @@ module.exports = git =
 
     clone: (superTask, repo, args, callback) -> 
 
-        #
-        # [1] TODO: use pipeline instead, or something that
-        #           can stop the sequence more gracefully
-        #
+        pipeline( [
 
-        console.log 'CLONE'
+            (        ) -> nodefn.call git.ensureWorkDir,  superTask, repo
+            (assemble) -> nodefn.call git.ensureClone,    superTask, repo
+            (assemble) -> nodefn.call git.ensureCheckout, superTask, repo
 
-        input = 
+        ] ).then(
 
-            workDir: repo.workDir
-            'remote.origin.url': repo['remote.origin.url']
-            HEAD: repo.HEAD
+            (assembled) -> callback null, assembled
+            (error) -> callback error
 
-        console.log input
-
-
-
-        # cloneArgs    = ['clone', origin, workDir]
-
-        # console.log 'TODO: report on mkdirp'
-
-        # sequence( [
-
-        #     -> nodefn.call mkdirp, workDir
-        #     -> nodefn.call git.needClone, workDir  # [1]
-        #     -> nodefn.call Shell.spawn, superTask, 'git', ['clone', origin, workDir]
-        #     -> nodefn.call Shell.spawn, superTask, 'git', git.checkoutArgs(workDir, branch)
-
-        #     #
-        #     # TODO: it could become necessary to step over the 'already cloned' but 
-        #     #       still need to do the checkout
-        #     #
-
-
-        # ] ).then(
-
-        #     (resultArray) -> callback null, resultArray
-        #     (error)  -> 
-
-        #         #
-        #         # [1]..... in order to terminate the sequence
-        #         #          ahead of making the clone
-        #         # 
-        #         #          but without erroring into the super
-        #         #          sequence that is cloning the list
-        #         #          of repos from the .git-seed file.
-        #         #
-
-        #         return callback error unless error == 'already cloned'
-
-        #         superTask.notify.info.good 'already cloned', workDir
-        #         callback null, {}
-
-        # )
+        )
 
 
     commitArgs: (workDir, logMessage) -> 

@@ -25,10 +25,8 @@ module.exports = shell =
         # or error = null and result = { code: 0, stdout: '', stderr: ''}
         #
 
-        if superTask and typeof superTask.notify == 'function'
-
-            try 
-                superTask.notify.info.normal 'shell', "run #{command} #{opts.join(' ')}"
+        try 
+            superTask.notify.info.normal 'shell', "run #{command} #{opts.join(' ')}"
 
         child = spawn command, opts
 
@@ -38,12 +36,12 @@ module.exports = shell =
         child.stdout.on 'data', (data) -> 
             str = data.toString()
             stdout += str
-            if superTask then superTask.notify.stdio.good str
+            try superTask.notify.stdio.good str
 
         child.stderr.on 'data', (data) -> 
             str = data.toString()  
             stderr += str
-            if superTask then superTask.notify.stdio.bad str
+            try superTask.notify.stdio.bad str
 
 
         child.on 'close', (code, signal) ->
