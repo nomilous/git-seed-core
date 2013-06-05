@@ -30,7 +30,7 @@ module.exports = shell =
 
         child = spawn command, opts
 
-        if superTask.allow_stdio? and superTask.allow_stdio
+        try if superTask.allow_stdio? and superTask.allow_stdio
 
             child.stdout.pipe process.stdout
             child.stderr.pipe process.stderr
@@ -51,7 +51,7 @@ module.exports = shell =
 
         child.on 'close', (code, signal) ->
 
-            superTask.allow_stdio = false
+            try superTask.allow_stdio = false
 
             if code > 0 
 
@@ -78,7 +78,7 @@ module.exports = shell =
 
             process.chdir at.directory
 
-            superTask.notify.info.normal 'shell', "run #{command} #{opts.join(' ')}, (in #{at.directory})"
+            try superTask.notify.info.normal 'shell', "run #{command} #{opts.join(' ')}, (in #{at.directory})"
 
             child = spawn command, opts
 
