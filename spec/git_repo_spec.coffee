@@ -4,9 +4,29 @@ require('nez').realize 'GitRepo', (GitRepo, test, it, should, GitSupport, findit
     # Mocks
     #
 
-    GitSupport.getOrigin = (dir, callback) -> callback null, 'ORIGIN'
-    GitSupport.getHeadRef = (dir, callback) -> callback null, 'BRANCH'
-    GitSupport.getHeadVersion = (dir, callback) -> callback null, 'REF'
+    superTask = {
+
+        notify: 
+            event: 
+                good:   (message) -> 
+                normal: (message) ->
+                bad:    (message) -> 
+            info: 
+                good:   (message) -> 
+                normal: (message) ->
+                bad:    (message) -> 
+
+    }
+
+    GitSupport.getConfigItem = (superTask, repo, configItem, callback) -> 
+        repo[configItem] = 'ORIGIN' 
+        callback null, repo
+    GitSupport.getHEAD = (superTask, repo, callback) -> 
+        repo.HEAD = 'HEAD' 
+        callback null, repo
+    GitSupport.getVersion = (superTask, repo, ref, callback) -> 
+        repo.version = 'VERSION'
+        callback null, repo
 
     findit.find = (path) -> 
         path.should.equal 'PATH'
@@ -27,34 +47,24 @@ require('nez').realize 'GitRepo', (GitRepo, test, it, should, GitSupport, findit
 
     it 'search() finds and loads repos', (done) -> 
 
-        GitRepo.search 'PATH', { Package: GitRepo }, {
+        GitRepo.search superTask, 'PATH', { Package: GitRepo }, (err, repos) -> 
 
-            notify: 
-                event: 
-                    good: (message) -> 
-                    bad: (message) -> 
-                info: 
-                    good: (message) -> 
-                    bad: (message) -> 
-
-        }, (err, repos) -> 
-
-            repos.should.eql [ { 
-                root: true
-                path: 'pretend/repo'
-                manager: 'none'
-                origin: 'ORIGIN'
-                branch: 'BRANCH'
-                ref: 'REF' 
-            }, { 
-                root: false
-                path: 'pretend/repo/node_modules/deeper'
-                manager: 'none'
-                origin: 'ORIGIN'
-                branch: 'BRANCH'
-                ref: 'REF' 
+            repos.should.eql [{ 
+                root: true,
+                workDir: 'pretend/repo',
+                packageManager: 'none',
+                'remote.origin.url': 'ORIGIN',
+                HEAD: 'HEAD',
+                version: 'VERSION' 
+            },{             
+                root: false,
+                workDir: 'pretend/repo/node_modules/deeper',
+                packageManager: 'none',
+                'remote.origin.url': 'ORIGIN',
+                HEAD: 'HEAD',
+                version: 'VERSION' 
             } ]
-
+            
             test done
 
     it 'constructor sets the root repo ref to ROOT_REPO_REF', (done) -> 

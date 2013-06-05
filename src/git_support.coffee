@@ -8,7 +8,7 @@ mkdirp    = require('fs-extra').mkdirp
 
 module.exports = git =
 
-    getConfigItem: (repo, configItem, callback) -> 
+    getConfigItem: (superTask, repo, configItem, callback) -> 
 
         #
         # TODO: callback error when missing repo.workDir
@@ -37,7 +37,7 @@ module.exports = git =
 
 
 
-    getHEAD: (repo, callback) -> 
+    getHEAD: (superTask, repo, callback) -> 
 
         #
         # TODO: callback error when missing repo.workDir
@@ -57,7 +57,7 @@ module.exports = git =
 
 
 
-    getVersion: (repo, ref, callback) -> 
+    getVersion: (superTask, repo, ref, callback) -> 
 
         #
         # TODO: callback error when missing repo.workDir
@@ -183,7 +183,7 @@ module.exports = git =
         repo.status ||= {}
         if repo.status['missing repo'] then return callback null, repo
 
-        git.getHEAD { workDir: repo.workDir }, (error, actualRepo) ->
+        git.getHEAD superTask, { workDir: repo.workDir }, (error, actualRepo) ->
 
             wrong = repo.HEAD != actualRepo.HEAD
             repo.status ||= {} 
@@ -252,51 +252,62 @@ module.exports = git =
         )
 
 
-    clone: (superTask, workDir, origin, branch, callback) -> 
+    clone: (superTask, repo, args, callback) -> 
 
         #
         # [1] TODO: use pipeline instead, or something that
         #           can stop the sequence more gracefully
         #
 
+        console.log 'CLONE'
 
-        cloneArgs    = ['clone', origin, workDir]
+        input = 
 
-        console.log 'TODO: report on mkdirp'
+            workDir: repo.workDir
+            'remote.origin.url': repo['remote.origin.url']
+            HEAD: repo.HEAD
 
-        sequence( [
-
-            -> nodefn.call mkdirp, workDir
-            -> nodefn.call git.needClone, workDir  # [1]
-            -> nodefn.call Shell.spawn, superTask, 'git', ['clone', origin, workDir]
-            -> nodefn.call Shell.spawn, superTask, 'git', git.checkoutArgs(workDir, branch)
-
-            #
-            # TODO: it could become necessary to step over the 'already cloned' but 
-            #       still need to do the checkout
-            #
+        console.log input
 
 
-        ] ).then(
 
-            (resultArray) -> callback null, resultArray
-            (error)  -> 
+        # cloneArgs    = ['clone', origin, workDir]
 
-                #
-                # [1]..... in order to terminate the sequence
-                #          ahead of making the clone
-                # 
-                #          but without erroring into the super
-                #          sequence that is cloning the list
-                #          of repos from the .git-seed file.
-                #
+        # console.log 'TODO: report on mkdirp'
 
-                return callback error unless error == 'already cloned'
+        # sequence( [
 
-                superTask.notify.info.good 'already cloned', workDir
-                callback null, {}
+        #     -> nodefn.call mkdirp, workDir
+        #     -> nodefn.call git.needClone, workDir  # [1]
+        #     -> nodefn.call Shell.spawn, superTask, 'git', ['clone', origin, workDir]
+        #     -> nodefn.call Shell.spawn, superTask, 'git', git.checkoutArgs(workDir, branch)
 
-        )
+        #     #
+        #     # TODO: it could become necessary to step over the 'already cloned' but 
+        #     #       still need to do the checkout
+        #     #
+
+
+        # ] ).then(
+
+        #     (resultArray) -> callback null, resultArray
+        #     (error)  -> 
+
+        #         #
+        #         # [1]..... in order to terminate the sequence
+        #         #          ahead of making the clone
+        #         # 
+        #         #          but without erroring into the super
+        #         #          sequence that is cloning the list
+        #         #          of repos from the .git-seed file.
+        #         #
+
+        #         return callback error unless error == 'already cloned'
+
+        #         superTask.notify.info.good 'already cloned', workDir
+        #         callback null, {}
+
+        # )
 
 
     commitArgs: (workDir, logMessage) -> 

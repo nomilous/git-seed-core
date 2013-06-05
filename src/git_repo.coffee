@@ -75,9 +75,9 @@ class GitRepo
 
         tasks = pipeline [
 
-            (    ) -> nodefn.call GitSupport.getConfigItem, input, 'remote.origin.url'
-            (repo) -> nodefn.call GitSupport.getHEAD, repo
-            (repo) -> nodefn.call GitSupport.getVersion, repo, repo.HEAD
+            (    ) -> nodefn.call GitSupport.getConfigItem, superTask, input, 'remote.origin.url'
+            (repo) -> nodefn.call GitSupport.getHEAD, superTask, repo
+            (repo) -> nodefn.call GitSupport.getVersion, superTask, repo, repo.HEAD
 
         ] 
 
@@ -108,7 +108,7 @@ class GitRepo
 
     @clone: (superTask, repo, args, callback) -> 
 
-        GitSupport.clone superTask, repo.path, repo.origin, repo.branch, callback
+        GitSupport.clone superTask, repo, args, callback
 
     #
     # `GitRepo.commit()`
