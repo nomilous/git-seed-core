@@ -319,7 +319,6 @@ module.exports = git =
             logMessage
         ]
 
-
     commit: (superTask, repo, args, callback) -> 
 
         pipeline( [
@@ -369,45 +368,105 @@ module.exports = git =
             (error) -> callback error
 
         )
-        
 
-    pull: (superTask, workDir, origin, branch, callback) -> 
 
-        sequence( [
+    pull: (superTask, repo, args, callback) -> 
 
-            -> nodefn.call git.missingRepo, workDir
-            -> nodefn.call git.wrongBranch, workDir, branch
-            -> nodefn.call Shell.spawnAt, superTask, directory: workDir, 'git', ['pull', origin, branch]
+        input = 
+
+            workDir: repo.workDir
+            HEAD:    repo.HEAD
+
+        pipeline( [
+
+            (        ) -> nodefn.call git.missingRepo, superTask, input
+            (assemble) -> nodefn.call git.wrongBranch, superTask, assemble
+            (assemble) -> nodefn.call git.getVersion, superTask, assemble, input.HEAD
+            (assemble) -> nodefn.call (callback) -> 
+
+                repo.status = input.status
+
+                if assemble.status['missing repo'] or assemble.status['wrong branch']
+                
+                    return callback null, repo
+
+                if assemble.version != repo.version 
+
+                    superTask.notify.info.good 'pull', 
+                        description: assemble.workDir
+
+                    Shell.spawnAt( 
+
+                        superTask
+                        directory: repo.workDir
+                        'git'
+                        ['pull', repo['remote.origin.url'], repo.HEAD]
+
+                        (error, result) -> callback null, repo
+
+                    )
+
+                else 
+
+                    superTask.notify.info.normal 'skip', 
+                        description: 'already up-to-date ' + assemble.workDir
+
+                    callback null, repo
+
+
 
         ] ).then(
 
-            (resultArray) -> 
+            (assembled) -> 
 
-                pulled = resultArray[2]
+                latest = assembled.status.latest
+                tenor  = assembled.status.tenor || 'normal'
 
-                console.log 'pull result', pulled
-                callback null, resultArray
+                callback null, assembled
 
-            (error)  -> 
-
-                #
-                # #duplication (parital)
-                #
-
-                if error == 'missing repo'
-
-                    superTask.notify.info.bad 'missing repo', workDir
-                    callback null, {}
-                    return
-
-                if error == 'wrong branch'
-
-                    superTask.notify.info.bad 'wrong branch', "#{workDir} - expects #{branch}"
-                    callback null, {}
-                    return
-
+            (error) -> 
+                console.log 'ERROR:', error
                 callback error
 
+
         )
+
+
+        # sequence( [
+
+        #     -> nodefn.call git.missingRepo, workDir
+        #     -> nodefn.call git.wrongBranch, workDir, branch
+        #     -> nodefn.call Shell.spawnAt, superTask, directory: workDir, 'git', ['pull', origin, branch]
+
+        # ] ).then(
+
+        #     (resultArray) -> 
+
+        #         pulled = resultArray[2]
+
+        #         console.log 'pull result', pulled
+        #         callback null, resultArray
+
+        #     (error)  -> 
+
+        #         #
+        #         # #duplication (parital)
+        #         #
+
+        #         if error == 'missing repo'
+
+        #             superTask.notify.info.bad 'missing repo', workDir
+        #             callback null, {}
+        #             return
+
+        #         if error == 'wrong branch'
+
+        #             superTask.notify.info.bad 'wrong branch', "#{workDir} - expects #{branch}"
+        #             callback null, {}
+        #             return
+
+        #         callback error
+
+        #)
 
 

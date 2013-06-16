@@ -128,7 +128,7 @@ class GitRepo
 
     @pull: (superTask, repo, args, callback) -> 
 
-        GitSupport.pull superTask, repo.path, repo.origin, repo.branch, callback
+        GitSupport.pull superTask, repo, args, callback
 
 
     #
