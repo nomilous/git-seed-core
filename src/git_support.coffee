@@ -235,26 +235,6 @@ module.exports = git =
             callback null, repo
 
 
-    getStagedChanges: (workDir, callback) -> 
-
-        Shell.spawn null, 'git', [
-
-            "--git-dir=#{workDir}/.git"
-            "--work-tree=#{workDir}"
-            'diff'
-            '--cached'
-
-        ], callback
-
-
-    noStagedChanges: (workDir, callback) -> 
-
-        git.getStagedChanges workDir, (error, result) -> 
-
-            return callback 'nothing staged' if result.stdout == ''
-            callback null
-
-
     status: (superTask, repo, args, callback) -> 
 
         input = 
@@ -307,6 +287,28 @@ module.exports = git =
         )
 
 
+    getStagedChanges: (superTask, repo, callback) -> 
+
+        repo.status ||= {}
+        if repo.status['missing repo'] then return callback null, repo
+        if repo.status['wrong branch'] then return callback null, repo
+
+        Shell.spawn null, 'git', [
+
+            "--git-dir=#{repo.workDir}/.git"
+            "--work-tree=#{repo.workDir}"
+            'diff'
+            '--cached'
+
+        ], (error, result) -> 
+
+            repo.status ||= {}
+            repo.status['staged changes'] = result.stdout != ''
+            repo.status.latest = 'staged changes'
+            repo.status.tenor  = 'normal'
+            callback error, repo
+
+
     commitArgs: (workDir, logMessage) -> 
 
         [
@@ -318,52 +320,56 @@ module.exports = git =
         ]
 
 
-    commit: (superTask, workDir, origin, branch, logMessage, callback) -> 
+    commit: (superTask, repo, args, callback) -> 
 
-        sequence( [
+        pipeline( [
 
-            -> nodefn.call git.missingRepo, workDir
-            -> nodefn.call git.wrongBranch, workDir, branch
-            -> nodefn.call git.noStagedChanges, workDir
-            -> nodefn.call Shell.spawn, superTask, 'git', git.commitArgs(workDir, logMessage)
+            (        ) -> nodefn.call git.missingRepo, superTask, repo
+            (assemble) -> nodefn.call git.wrongBranch, superTask, assemble
+            (assemble) -> nodefn.call git.getStagedChanges, superTask, assemble
+            (assemble) -> nodefn.call (callback) -> 
+
+                unless assemble.status['staged changes']
+                    return callback null, assemble
+
+                commitArgs = git.commitArgs repo.workDir, args.message
+                Shell.spawn superTask, 'git', commitArgs, (error, result) -> 
+
+                    unless result.code != 0
+
+                        superTask.notify.info.good 'commit', 
+                            description: repo.workDir
+                            detail: result.stdout
+
+                    else 
+                        superTask.notify.info.bad 'commit failed', 
+                            description: repo.workDir
+                            detail: result.stdout
+
+                    callback null, assemble
 
         ] ).then(
 
-            (resultArray) -> 
+            (assembled) -> 
 
-                commited = resultArray[3]
+                latest = assembled.status.latest
+                tenor  = assembled.status.tenor || 'normal'
 
-                superTask.notify.info.normal 'committed', commited
-                callback null, resultArray
+                if latest == 'staged changes'
+                    superTask.notify.info[tenor] 'skip', 
+                        description: "no staged changes #{assembled.workDir}"
 
-            (error)  -> 
+                else 
+                    superTask.notify.info[tenor] latest, 
+                        description: assembled.workDir
+                        detail: assembled.status.detail
 
-                #
-                # #duplication
-                #
+                callback null, assembled
 
-                if error == 'missing repo'
-
-                    superTask.notify.info.bad 'missing repo', workDir
-                    callback null, {}
-                    return
-
-                if error == 'wrong branch'
-
-                    superTask.notify.info.bad 'wrong branch', "#{workDir} - expects #{branch}"
-                    callback null, {}
-                    return
-
-                if error == 'nothing staged'
-
-                    superTask.notify.info.normal 'nothing staged', "#{workDir}"
-                    callback null, {}
-                    return
-
-
-                callback error
+            (error) -> callback error
 
         )
+        
 
     pull: (superTask, workDir, origin, branch, callback) -> 
 

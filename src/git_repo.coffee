@@ -118,7 +118,7 @@ class GitRepo
 
     @commit: (superTask, repo, args, callback) -> 
 
-        GitSupport.commit superTask, repo.path, repo.origin, repo.branch, args.message, callback
+        GitSupport.commit superTask, repo, args, callback
 
     #
     # `GitRepo.pull()`
