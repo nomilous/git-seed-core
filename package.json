@@ -1,7 +1,7 @@
 {
   "name": "git-seed-core",
   "description": "core componenets for git-seed",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "dependencies": {
     "findit": "~0.1.2",
     "when": "~2.1.0",
